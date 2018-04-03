@@ -2,16 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://jetwang99.github.io/2015/02/24/love-page/</loc>
+    <loc>http://jetwang99.github.io/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/</loc>
     
-    <lastmod>2018-04-03T06:03:35.012Z</lastmod>
+    <lastmod>2018-04-03T08:53:05.188Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/</loc>
+    <loc>http://jetwang99.github.io/2015/02/24/love-page/</loc>
     
-    <lastmod>2018-04-03T05:50:04.046Z</lastmod>
+    <lastmod>2018-04-03T06:03:35.012Z</lastmod>
     
   </url>
   
@@ -58,13 +58,6 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/11/07/windows-import-cer-file-command/</loc>
-    
-    <lastmod>2018-01-24T08:30:24.815Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://jetwang99.github.io/2014/12/07/what-is-the-difference-of-two-skype-in-google-play/</loc>
     
     <lastmod>2018-01-24T08:30:24.815Z</lastmod>
@@ -72,14 +65,21 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/11/03/virtualbox-os-x-mavericks-screen-resolution/</loc>
+    <loc>http://jetwang99.github.io/2014/11/07/windows-import-cer-file-command/</loc>
+    
+    <lastmod>2018-01-24T08:30:24.815Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://jetwang99.github.io/2014/12/03/what-is-hr-thinking-about-job-hunters-over-30/</loc>
     
     <lastmod>2018-01-24T08:30:24.814Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/12/03/what-is-hr-thinking-about-job-hunters-over-30/</loc>
+    <loc>http://jetwang99.github.io/2014/11/03/virtualbox-os-x-mavericks-screen-resolution/</loc>
     
     <lastmod>2018-01-24T08:30:24.814Z</lastmod>
     
@@ -114,13 +114,6 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/12/08/torandgoogleadsense/</loc>
-    
-    <lastmod>2018-01-24T08:30:24.811Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://jetwang99.github.io/2014/12/29/twitter-theme/</loc>
     
     <lastmod>2018-01-24T08:30:24.811Z</lastmod>
@@ -128,9 +121,9 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2016/01/11/the-relation-of-developer-and-his-ablity-of-fixing-pc/</loc>
+    <loc>http://jetwang99.github.io/2014/12/08/torandgoogleadsense/</loc>
     
-    <lastmod>2018-01-24T08:30:24.810Z</lastmod>
+    <lastmod>2018-01-24T08:30:24.811Z</lastmod>
     
   </url>
   
@@ -142,14 +135,21 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/12/01/some-words-written-at-the-begining-of-december-2014/</loc>
+    <loc>http://jetwang99.github.io/2016/01/11/the-relation-of-developer-and-his-ablity-of-fixing-pc/</loc>
+    
+    <lastmod>2018-01-24T08:30:24.810Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://jetwang99.github.io/2015/08/04/shrink-virtualbox-disk-file/</loc>
     
     <lastmod>2018-01-24T08:30:24.809Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2015/08/04/shrink-virtualbox-disk-file/</loc>
+    <loc>http://jetwang99.github.io/2014/12/01/some-words-written-at-the-begining-of-december-2014/</loc>
     
     <lastmod>2018-01-24T08:30:24.809Z</lastmod>
     
@@ -163,13 +163,6 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2015/02/03/securecrt/</loc>
-    
-    <lastmod>2018-01-24T08:30:24.807Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://jetwang99.github.io/2016/07/01/secure-ssh-trust-connection/</loc>
     
     <lastmod>2018-01-24T08:30:24.807Z</lastmod>
@@ -177,14 +170,21 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/11/04/powershell-clean-disk-space/</loc>
+    <loc>http://jetwang99.github.io/2015/02/03/securecrt/</loc>
+    
+    <lastmod>2018-01-24T08:30:24.807Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://jetwang99.github.io/2016/03/23/pip-install-unable-to-find-vcvarsallbat/</loc>
     
     <lastmod>2018-01-24T08:30:24.806Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2016/03/23/pip-install-unable-to-find-vcvarsallbat/</loc>
+    <loc>http://jetwang99.github.io/2014/11/04/powershell-clean-disk-space/</loc>
     
     <lastmod>2018-01-24T08:30:24.806Z</lastmod>
     
@@ -233,14 +233,14 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2016/04/29/linux-ulimit-nproc-set/</loc>
+    <loc>http://jetwang99.github.io/2014/11/04/linux-vim-save-file-none-root/</loc>
     
     <lastmod>2018-01-24T08:30:24.802Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/11/04/linux-vim-save-file-none-root/</loc>
+    <loc>http://jetwang99.github.io/2016/04/29/linux-ulimit-nproc-set/</loc>
     
     <lastmod>2018-01-24T08:30:24.802Z</lastmod>
     
@@ -261,13 +261,6 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/11/07/linux-tar-exclude-folder/</loc>
-    
-    <lastmod>2018-01-24T08:30:24.800Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://jetwang99.github.io/2014/11/04/linux-ssh-login-slow/</loc>
     
     <lastmod>2018-01-24T08:30:24.800Z</lastmod>
@@ -282,14 +275,21 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2016/03/22/linux-noclobber/</loc>
+    <loc>http://jetwang99.github.io/2014/11/07/linux-tar-exclude-folder/</loc>
+    
+    <lastmod>2018-01-24T08:30:24.800Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://jetwang99.github.io/2014/11/03/linux-rm-rf-recovery/</loc>
     
     <lastmod>2018-01-24T08:30:24.799Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/11/03/linux-rm-rf-recovery/</loc>
+    <loc>http://jetwang99.github.io/2016/03/22/linux-noclobber/</loc>
     
     <lastmod>2018-01-24T08:30:24.799Z</lastmod>
     
@@ -317,14 +317,14 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/11/04/linux-add-new-disk-to-lvm/</loc>
+    <loc>http://jetwang99.github.io/2015/02/16/linux-find-xargs-print0/</loc>
     
     <lastmod>2018-01-24T08:30:24.796Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2015/02/16/linux-find-xargs-print0/</loc>
+    <loc>http://jetwang99.github.io/2014/11/04/linux-add-new-disk-to-lvm/</loc>
     
     <lastmod>2018-01-24T08:30:24.796Z</lastmod>
     
@@ -359,13 +359,6 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/12/08/googleadsense/</loc>
-    
-    <lastmod>2018-01-24T08:30:24.793Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://jetwang99.github.io/2014/12/10/god-father-s-outlook-on-life/</loc>
     
     <lastmod>2018-01-24T08:30:24.793Z</lastmod>
@@ -373,7 +366,14 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/12/09/gitcafe-qianyi/</loc>
+    <loc>http://jetwang99.github.io/2014/12/08/googleadsense/</loc>
+    
+    <lastmod>2018-01-24T08:30:24.793Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://jetwang99.github.io/2015/04/26/github-gitcafe-sshkey/</loc>
     
     <lastmod>2018-01-24T08:30:24.791Z</lastmod>
     
@@ -387,7 +387,7 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2015/04/26/github-gitcafe-sshkey/</loc>
+    <loc>http://jetwang99.github.io/2014/12/09/gitcafe-qianyi/</loc>
     
     <lastmod>2018-01-24T08:30:24.791Z</lastmod>
     
@@ -408,13 +408,6 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2015/04/23/deploy-jekyll-blog-to-azure-vm/</loc>
-    
-    <lastmod>2018-01-24T08:30:24.789Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://jetwang99.github.io/2015/10/13/drop-meaningless-social-activities/</loc>
     
     <lastmod>2018-01-24T08:30:24.789Z</lastmod>
@@ -429,6 +422,13 @@
   </url>
   
   <url>
+    <loc>http://jetwang99.github.io/2015/04/23/deploy-jekyll-blog-to-azure-vm/</loc>
+    
+    <lastmod>2018-01-24T08:30:24.789Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://jetwang99.github.io/2014/11/04/apache-log-split/</loc>
     
     <lastmod>2018-01-24T08:30:24.788Z</lastmod>
@@ -436,14 +436,14 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2015/04/01/curl-http_code/</loc>
+    <loc>http://jetwang99.github.io/2016/09/30/delete-long-path-in-windows/</loc>
     
     <lastmod>2018-01-24T08:30:24.788Z</lastmod>
     
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2016/09/30/delete-long-path-in-windows/</loc>
+    <loc>http://jetwang99.github.io/2015/04/01/curl-http_code/</loc>
     
     <lastmod>2018-01-24T08:30:24.788Z</lastmod>
     
@@ -464,13 +464,6 @@
   </url>
   
   <url>
-    <loc>http://jetwang99.github.io/2014/12/27/April-twilight/</loc>
-    
-    <lastmod>2018-01-24T08:30:24.786Z</lastmod>
-    
-  </url>
-  
-  <url>
     <loc>http://jetwang99.github.io/2014/12/05/a-splendid-bug-finding-story/</loc>
     
     <lastmod>2018-01-24T08:30:24.786Z</lastmod>
@@ -479,6 +472,13 @@
   
   <url>
     <loc>http://jetwang99.github.io/2014/12/09/access-log-for-this-blog/</loc>
+    
+    <lastmod>2018-01-24T08:30:24.786Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://jetwang99.github.io/2014/12/27/April-twilight/</loc>
     
     <lastmod>2018-01-24T08:30:24.786Z</lastmod>
     
