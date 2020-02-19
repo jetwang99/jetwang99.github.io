@@ -5,9 +5,9 @@
   <subtitle>朝花夕拾</subtitle>
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://jetwang99.github.io/"/>
-  <updated>2018-04-03T08:53:05.188Z</updated>
-  <id>http://jetwang99.github.io/</id>
+  <link href="https://ajasonwang.github.io/"/>
+  <updated>2020-02-19T03:11:57.887Z</updated>
+  <id>https://ajasonwang.github.io/</id>
   
   <author>
     <name>J.W</name>
@@ -17,9 +17,31 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>k8s ci &amp; cd pipeline</title>
+    <link href="https://ajasonwang.github.io/2020/02/19/k8s-cicd-pipeline-setup/"/>
+    <id>https://ajasonwang.github.io/2020/02/19/k8s-cicd-pipeline-setup/</id>
+    <published>2020-02-19T01:28:22.026Z</published>
+    <updated>2020-02-19T03:11:57.887Z</updated>
+    
+    <content type="html"><![CDATA[<hr><h1 id="setup-nexus-private-registry"><a href="#setup-nexus-private-registry" class="headerlink" title="setup nexus private registry"></a>setup nexus private registry</h1><h4 id="generate-ssl-certificate-and-restart-nexus"><a href="#generate-ssl-certificate-and-restart-nexus" class="headerlink" title="generate ssl certificate and restart nexus"></a>generate ssl certificate and restart nexus</h4><pre><code>mkdir -p ${nexus_home}/etc/sslcd ${nexus_home}/etc/sslexport NEXUS_HOST=export NEXUS_DOMAIN=export NEXUS_IP_ADDRESS=192.168.5.12export NEXUS_SSL_PORT=18444keytool -genkeypair -keystore keystore.jks -storepass 5St00g3s -keypass 5St00g3s -alias jetty -keyalg RSA -keysize 2048 -validity 5000 -dname &quot;CN=$NEXUS_DOMAIN, OU=Example, O=Sonatype, L=Unspecified, ST=Unspecified, C=US&quot; -ext &quot;SAN=DNS:$NEXUS_DOMAIN,IP:$NEXUS_IP_ADDRESS&quot; -ext &quot;BC=ca:true&quot;openssl req -newkey rsa:4096 -nodes -sha256 -keyout ${nexus_home}/etc/ssl/nexus.key -x509 -days 3650 -out ${nexus_home}/etc/ssl/nexus.certls ${nexus_home}/etc/ssl/keystore.jks  nexus.cert  nexus.key</code></pre><h4 id="etc-nexus-default-properties"><a href="#etc-nexus-default-properties" class="headerlink" title="etc/nexus-default.properties"></a>etc/nexus-default.properties</h4><pre><code>## DO NOT EDIT - CUSTOMIZATIONS BELONG IN $data-dir/etc/nexus.properties### Jetty sectionapplication-port=8081application-host=192.168.5.12application-port-ssl=8444nexus-args=${jetty.etc}/jetty.xml,${jetty.etc}/jetty-http.xml,${jetty.etc}/jetty-https.xml,${jetty.etc}/jetty-requestlog.xmlnexus-context-path=/# Nexus sectionnexus-edition=nexus-pro-editionnexus-features=\nexus-pro-featurenexus.hazelcast.discovery.isEnabled=true</code></pre><h4 id="etc-nexus-properties"><a href="#etc-nexus-properties" class="headerlink" title="etc/nexus.properties"></a>etc/nexus.properties</h4><pre><code>application-port-ssl=18444</code></pre><h4 id="restart-nexus-service"><a href="#restart-nexus-service" class="headerlink" title="restart nexus service"></a>restart nexus service</h4><pre><code>${nexus_home}/bin/nexus restart</code></pre><h4 id="create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><a href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI" class="headerlink" title="create nexus repository and set Repository Connectors in nexus UI"></a>create nexus repository and set Repository Connectors in nexus UI</h4><pre><code>#hosted type repository for docker pushHTTPS: 18444#group type repository for docker pullHTTPS: 18445</code></pre><h4 id="setup-ssl-trust-in-docker-client-node-not-always-necessary"><a href="#setup-ssl-trust-in-docker-client-node-not-always-necessary" class="headerlink" title="setup ssl trust in docker client node(not always necessary)"></a>setup ssl trust in docker client node(not always necessary)</h4><pre><code>#remove old certcd /etc/pki/ca-trust/source/anchorsrm –f your_domain_name.crt#client trustexport DOMAIN_NAME=your_domain_nameexport TCP_PORT=18444openssl s_client -connect $DOMAIN_NAME:$TCP_PORT -showcerts &lt;/dev/null 2&gt;/dev/null | openssl x509 -outform PEM | tee /etc/pki/ca-trust/source/anchors/$DOMAIN_NAME.crtupdate-ca-trust</code></pre><h4 id="configure-etc-docker-daemon-json-and-restart-docker-service"><a href="#configure-etc-docker-daemon-json-and-restart-docker-service" class="headerlink" title="configure /etc/docker/daemon.json and restart docker service"></a>configure /etc/docker/daemon.json and restart docker service</h4><pre><code>{    &quot;insecure-registries&quot; : [&quot;your_domain_name:18444&quot;,&quot;your_domain_name:18445&quot;]}</code></pre><h4 id="restart-docker-service-and-login"><a href="#restart-docker-service-and-login" class="headerlink" title="restart docker service and login"></a>restart docker service and login</h4><pre><code>/bin/systemctl restart docker.service#test docker logindocker login your_domain_name:18444docker login your_domain_name:18445</code></pre><h1 id="create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><a href="#create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm" class="headerlink" title="create k8s ha cluster with ansible-galaxy scrips using kubeadm"></a>create k8s ha cluster with ansible-galaxy scrips using kubeadm</h1><h1 id="helm-install-jenkins-service-in-k8s"><a href="#helm-install-jenkins-service-in-k8s" class="headerlink" title="helm install jenkins service in k8s"></a>helm install jenkins service in k8s</h1><h1 id="create-ci-cd-pipeline-in-k8s"><a href="#create-ci-cd-pipeline-in-k8s" class="headerlink" title="create ci cd pipeline in k8s"></a>create ci cd pipeline in k8s</h1><pre><code>pipeline {    agent { label &quot;jenkins-jenkins-slave&quot; } // jenkins slave with maven sonar-scanner tools    parameters {        // build param        string(name: &apos;PKG_VERSION&apos;, defaultValue: &apos;1.0.0&apos;, description: &apos;固定值，不需要填写&apos;)        string(name: &apos;BRANCH&apos;, defaultValue: &apos;master&apos;, description: &apos;固定值，不需要填写&apos;)        string(name: &apos;SONAR_PROJECT_NAME&apos;, defaultValue: &apos;sonar_project_name&apos;, description: &apos;固定值，不需要填写&apos;)        // deploy param        string(name: &apos;ENVTYPE_DEV&apos;, defaultValue: &apos;msdev&apos;, description: &apos;固定值，不需要填写\n\n&apos;)        string(name: &apos;ENVTYPE_QA&apos;, defaultValue: &apos;msqa&apos;, description: &apos;固定值，不需要填写\n\n&apos;)        choice(name: &apos;ENABLE_SONAR&apos;, choices: [&apos;N&apos;, &apos;Y&apos;], description: &apos;是否开启SONAR扫描&apos;)        choice(name: &apos;DEPLOY_QA&apos;, choices: [&apos;N&apos;, &apos;Y&apos;], description: &apos;是否发布QA环境\n\n&apos;)    }    environment {        SONAR_HOST = &quot;http://nginx_url/sonarqube&quot;        SONAR_TOKEN = &quot;&quot;        // nexus for artifacts upload        NEXUS_VERSION = &quot;nexus3&quot;        NEXUS_PROTOCOL = &quot;http&quot;        NEXUS_URL = &quot;&quot;        NEXUS_REPOSITORY = &quot;snapshot&quot;        NEXUS_GROUP = &quot;wise&quot;        NEXUS_ARTIFACT_ID = &quot;ms-assembly&quot;        NEXUS_CREDENTIAL_ID = &quot;&quot;        releasePackageDirPath = &quot;RELEASE/patch/jenkins/${PILOT_PROJECT}&quot;    }    options {        buildDiscarder(logRotator(numToKeepStr: &apos;5&apos;))        preserveStashes()    }    stages {        stage(&quot;Code Checkout&quot;) {            steps { ... }        }        stage(&apos;Build&apos;) {            steps {                script{                    try {                        script {                            try {                                sh &apos;mvn package -f project_name/pom.xml -Dmaven.test.skip=true&apos;                            } finally { }                        }                    } catch(error) {                        echo &quot;First build failed, let&apos;s retry if accepted&quot;                        retry(2) {                            script {                                try {                                    sh &apos;mvn package -f project_name/pom.xml -Dmaven.test.skip=true&apos;                                } finally { }                            }                        }                    }                }            }        }        stage(&apos;Assemble &amp; Test&apos;) {            parallel {                stage(&quot;Assemble&quot;) {                    steps { sh &quot;sh package.sh&quot; }                }            }        }        stage(&apos;Scan &amp; Upload&apos;) {            parallel {                stage(&apos;Archive Artifacts&apos;) {                    steps {                        sh &quot;ls -lrt ${WORKSPACE}&quot;                        archiveArtifacts &quot;project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip&quot;                        sh &apos;&apos;&apos;                        [ ! -d ${HOME}/${releasePackageDirPath} ] &amp;&amp; mkdir -p ${HOME}/${releasePackageDirPath}                        cp -a project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip ${HOME}/${releasePackageDirPath}                        &apos;&apos;&apos;                    }                }                // stage(&quot;Upload Artifacts&quot;) {                //  steps {                //      nexusArtifactUploader \                //          credentialsId: &quot;${NEXUS_CREDENTIAL_ID}&quot;, \                //          groupId: &quot;${NEXUS_GROUP}&quot;, \                //          nexusUrl: &quot;${NEXUS_URL}&quot;, \                //          nexusVersion: &quot;${NEXUS_VERSION}&quot;, \                //          protocol: &quot;${NEXUS_PROTOCOL}&quot;, \                //          repository: &quot;${NEXUS_REPOSITORY}&quot;, \                //          version: &quot;${PKG_VERSION}&quot;, \                //          artifacts: [                //              [artifactId: &quot;${NEXUS_ARTIFACT_ID}&quot;, \                //              classifier: &apos;&apos;, \                //              file: &quot;project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip&quot;, \                //              type: &apos;zip&apos;]                //          ]                //  }                // }                stage(&quot;SonarQube Scan&quot;) {                    steps {                        script {                            if (env.ENABLE_SONAR == &apos;Y&apos;) {                                withSonarQubeEnv(&apos;dev_sonarqube&apos;) { // configured in jenkins setting                                    sh &apos;&apos;&apos;sonar-scanner -Dsonar.host.url=${SONAR_HOST} \                                        -Dsonar.sourceEncoding=UTF-8 \                                        -Dsonar.sources=. \                                        -Dsonar.language=java \                                        -Dsonar.login=${SONAR_TOKEN} \                                        -Dsonar.projectVersion=${BRANCH} \                                        -Dsonar.java.binaries=. \                                        -Dsonar.projectKey=${SONAR_PROJECT_NAME} \                                        -Dsonar.java.libraries=. \                                        -Dsonar.projectName=${SONAR_PROJECT_NAME}                                    &apos;&apos;&apos;                                }                                sleep(120)                                timeout(time: 1, unit: &apos;MINUTES&apos;) {                                    def qg = waitForQualityGate()                                    if (qg.status != &apos;SUCCESS&apos;) {                                        echo &quot;Pipeline aborted due to quality gate failure: ${qg.status}&quot;                                        // error &quot;Pipeline aborted due to quality gate failure: ${qg.status}&quot;                                    }                                }                            } else { }                        }                    }                }            }        }        stage(&apos;Deploy DEV&apos;) {            agent { label &quot;jenkins-slave-cap&quot; } // ruby capistrano slave, deploy dev by default            steps {                script {                    // sh &quot;cap -T&quot;                    sh &apos;&apos;&apos;#!/bin/bash -ex                    cd  ${HOME}/${releasePackageDirPath}                    md5sum project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip &gt; project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip.md5sum                    [ -d project_name ] &amp;&amp; rm -rf project_name                    unzip -o project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip                    cd /data/relmgt                    cap  ${ENVTYPE_DEV} patch:upload CHG=${HOME}/${releasePackageDirPath}/project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip PROJECT=${PILOT_PROJECT}                    cap  ${ENVTYPE_DEV} patch:upload CHG=${HOME}/${releasePackageDirPath}/project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip.md5sum PROJECT=${PILOT_PROJECT}                    cap ${ENVTYPE_DEV} patch:DIFFZIP CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT}                    cap ${ENVTYPE_DEV} cmd CMD=&apos;cd $PROJECT_ROOT/project_name; chmod 755 *.sh; sh stopServers.sh DEV &amp;&apos; -z10.25.172.164                    sleep 10                    #cap ${ENVTYPE_DEV}  patch:BACKUP TEAM=${TEAM}                    cap ${ENVTYPE_DEV}  patch:UNPACK CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT} ZIP=Y                    sleep 10                    #echo &quot;check the md5 value for deployed version&quot;                    #cap ${ENVTYPE_DEV} patch:CHECKSUM TEAM=${TEAM} PROJECT=${PILOT_PROJECT}                    #cap ${ENVTYPE_DEV} patch:DIFFMD5  TEAM=${TEAM} CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT}                    cap ${ENVTYPE_DEV} cmd CMD=&apos;cd $PROJECT_ROOT/project_name; chmod 755 *.sh; sh -l startServers.sh DEV &gt;/dev/null &amp;&apos; -z10.25.172.164                    cap ${ENVTYPE_DEV} cmd CMD=&apos;. ./env; chmod -R 755 $PROJECT_ROOT/&apos; -z10.25.172.164                    &apos;&apos;&apos;                }            }        }        stage(&apos;Deploy QA&apos;) {            agent { label &quot;jenkins-slave-cap&quot; }            when {                environment name: &apos;DEPLOY_QA&apos;, value: &apos;Y&apos;            }            steps {                script {                    // refer dev deploy script                }            }        }    }}</code></pre>]]></content>
+    
+    <summary type="html">
+    
+      在kubernetes集群建立CICD流水线备忘
+    
+    </summary>
+    
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+      <category term="Kubernetes" scheme="https://ajasonwang.github.io/tags/Kubernetes/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Jenkins安装配置</title>
-    <link href="http://jetwang99.github.io/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/"/>
-    <id>http://jetwang99.github.io/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/</id>
+    <link href="https://ajasonwang.github.io/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/"/>
+    <id>https://ajasonwang.github.io/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/</id>
     <published>2017-10-14T08:36:48.000Z</published>
     <updated>2018-04-03T08:53:05.188Z</updated>
     
@@ -37,17 +59,17 @@ mysqladmin -u root password oldpass &amp;quot;newpass&amp;quot;
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Jenkins" scheme="http://jetwang99.github.io/tags/Jenkins/"/>
+      <category term="Jenkins" scheme="https://ajasonwang.github.io/tags/Jenkins/"/>
     
   </entry>
   
   <entry>
     <title>阿里云服务器被发现挖矿程序后的处理</title>
-    <link href="http://jetwang99.github.io/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/"/>
-    <id>http://jetwang99.github.io/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/</id>
+    <link href="https://ajasonwang.github.io/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/"/>
+    <id>https://ajasonwang.github.io/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/</id>
     <published>2017-10-14T08:12:58.000Z</published>
     <updated>2018-01-24T08:30:24.787Z</updated>
     
@@ -59,17 +81,17 @@ mysqladmin -u root password oldpass &amp;quot;newpass&amp;quot;
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="安全" scheme="http://jetwang99.github.io/tags/%E5%AE%89%E5%85%A8/"/>
+      <category term="安全" scheme="https://ajasonwang.github.io/tags/%E5%AE%89%E5%85%A8/"/>
     
   </entry>
   
   <entry>
     <title>nfs权限问题</title>
-    <link href="http://jetwang99.github.io/2016/10/26/nfs-permission/"/>
-    <id>http://jetwang99.github.io/2016/10/26/nfs-permission/</id>
+    <link href="https://ajasonwang.github.io/2016/10/26/nfs-permission/"/>
+    <id>https://ajasonwang.github.io/2016/10/26/nfs-permission/</id>
     <published>2016-10-26T03:44:38.000Z</published>
     <updated>2018-01-24T08:30:24.805Z</updated>
     
@@ -83,17 +105,17 @@ mysqladmin -u root password oldpass &amp;quot;newpass&amp;quot;
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+      <category term="Linux" scheme="https://ajasonwang.github.io/tags/Linux/"/>
     
   </entry>
   
   <entry>
     <title>Windows中删除路径太长目录及文件</title>
-    <link href="http://jetwang99.github.io/2016/09/30/delete-long-path-in-windows/"/>
-    <id>http://jetwang99.github.io/2016/09/30/delete-long-path-in-windows/</id>
+    <link href="https://ajasonwang.github.io/2016/09/30/delete-long-path-in-windows/"/>
+    <id>https://ajasonwang.github.io/2016/09/30/delete-long-path-in-windows/</id>
     <published>2016-09-30T08:10:07.000Z</published>
     <updated>2018-01-24T08:30:24.788Z</updated>
     
@@ -109,17 +131,17 @@ mysqladmin -u root password oldpass &amp;quot;newpass&amp;quot;
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Windows" scheme="http://jetwang99.github.io/tags/Windows/"/>
+      <category term="Windows" scheme="https://ajasonwang.github.io/tags/Windows/"/>
     
   </entry>
   
   <entry>
     <title>增加ssh无密码信任连接的安全性（转）</title>
-    <link href="http://jetwang99.github.io/2016/07/01/secure-ssh-trust-connection/"/>
-    <id>http://jetwang99.github.io/2016/07/01/secure-ssh-trust-connection/</id>
+    <link href="https://ajasonwang.github.io/2016/07/01/secure-ssh-trust-connection/"/>
+    <id>https://ajasonwang.github.io/2016/07/01/secure-ssh-trust-connection/</id>
     <published>2016-07-01T02:13:07.000Z</published>
     <updated>2018-01-24T08:30:24.807Z</updated>
     
@@ -135,17 +157,17 @@ mysqladmin -u root password oldpass &amp;quot;newpass&amp;quot;
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+      <category term="Linux" scheme="https://ajasonwang.github.io/tags/Linux/"/>
     
   </entry>
   
   <entry>
     <title>Windows 畸形文件夹</title>
-    <link href="http://jetwang99.github.io/2016/06/03/windows-malformation-folder/"/>
-    <id>http://jetwang99.github.io/2016/06/03/windows-malformation-folder/</id>
+    <link href="https://ajasonwang.github.io/2016/06/03/windows-malformation-folder/"/>
+    <id>https://ajasonwang.github.io/2016/06/03/windows-malformation-folder/</id>
     <published>2016-06-03T03:44:38.000Z</published>
     <updated>2018-01-24T08:30:24.816Z</updated>
     
@@ -162,17 +184,17 @@ mysqladmin -u root password oldpass &amp;quot;newpass&amp;quot;
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Windows" scheme="http://jetwang99.github.io/tags/Windows/"/>
+      <category term="Windows" scheme="https://ajasonwang.github.io/tags/Windows/"/>
     
   </entry>
   
   <entry>
     <title>在 Bash 中删除除某些文件外的所有文件</title>
-    <link href="http://jetwang99.github.io/2016/05/19/exclude-file-when-using-rm/"/>
-    <id>http://jetwang99.github.io/2016/05/19/exclude-file-when-using-rm/</id>
+    <link href="https://ajasonwang.github.io/2016/05/19/exclude-file-when-using-rm/"/>
+    <id>https://ajasonwang.github.io/2016/05/19/exclude-file-when-using-rm/</id>
     <published>2016-05-19T07:52:08.000Z</published>
     <updated>2018-01-24T08:30:24.790Z</updated>
     
@@ -190,17 +212,17 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+      <category term="Linux" scheme="https://ajasonwang.github.io/tags/Linux/"/>
     
   </entry>
   
   <entry>
     <title>正确配置Linux系统ulimit/nproc值的方法（转）</title>
-    <link href="http://jetwang99.github.io/2016/04/29/linux-ulimit-nproc-set/"/>
-    <id>http://jetwang99.github.io/2016/04/29/linux-ulimit-nproc-set/</id>
+    <link href="https://ajasonwang.github.io/2016/04/29/linux-ulimit-nproc-set/"/>
+    <id>https://ajasonwang.github.io/2016/04/29/linux-ulimit-nproc-set/</id>
     <published>2016-04-29T09:47:34.000Z</published>
     <updated>2018-01-24T08:30:24.802Z</updated>
     
@@ -214,17 +236,17 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+      <category term="Linux" scheme="https://ajasonwang.github.io/tags/Linux/"/>
     
   </entry>
   
   <entry>
     <title>pip install 的报错 Unable to find vcvarsall.bat</title>
-    <link href="http://jetwang99.github.io/2016/03/23/pip-install-unable-to-find-vcvarsallbat/"/>
-    <id>http://jetwang99.github.io/2016/03/23/pip-install-unable-to-find-vcvarsallbat/</id>
+    <link href="https://ajasonwang.github.io/2016/03/23/pip-install-unable-to-find-vcvarsallbat/"/>
+    <id>https://ajasonwang.github.io/2016/03/23/pip-install-unable-to-find-vcvarsallbat/</id>
     <published>2016-03-23T05:03:03.000Z</published>
     <updated>2018-01-24T08:30:24.806Z</updated>
     
@@ -245,17 +267,17 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Python" scheme="http://jetwang99.github.io/tags/Python/"/>
+      <category term="Python" scheme="https://ajasonwang.github.io/tags/Python/"/>
     
   </entry>
   
   <entry>
     <title>linux noclobber</title>
-    <link href="http://jetwang99.github.io/2016/03/22/linux-noclobber/"/>
-    <id>http://jetwang99.github.io/2016/03/22/linux-noclobber/</id>
+    <link href="https://ajasonwang.github.io/2016/03/22/linux-noclobber/"/>
+    <id>https://ajasonwang.github.io/2016/03/22/linux-noclobber/</id>
     <published>2016-03-21T22:16:16.000Z</published>
     <updated>2018-01-24T08:30:24.799Z</updated>
     
@@ -269,17 +291,17 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+      <category term="Linux" scheme="https://ajasonwang.github.io/tags/Linux/"/>
     
   </entry>
   
   <entry>
     <title>双系统进Ubuntu开机卡死</title>
-    <link href="http://jetwang99.github.io/2016/01/13/ubuntu-hang-on-boot/"/>
-    <id>http://jetwang99.github.io/2016/01/13/ubuntu-hang-on-boot/</id>
+    <link href="https://ajasonwang.github.io/2016/01/13/ubuntu-hang-on-boot/"/>
+    <id>https://ajasonwang.github.io/2016/01/13/ubuntu-hang-on-boot/</id>
     <published>2016-01-13T04:02:02.000Z</published>
     <updated>2018-01-24T08:30:24.812Z</updated>
     
@@ -295,43 +317,17 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Ubuntu" scheme="http://jetwang99.github.io/tags/Ubuntu/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>评程序员和会不会修电脑到底有几毛钱关系？</title>
-    <link href="http://jetwang99.github.io/2016/01/11/the-relation-of-developer-and-his-ablity-of-fixing-pc/"/>
-    <id>http://jetwang99.github.io/2016/01/11/the-relation-of-developer-and-his-ablity-of-fixing-pc/</id>
-    <published>2016-01-11T02:20:20.000Z</published>
-    <updated>2018-01-24T08:30:24.810Z</updated>
-    
-    <content type="html"><![CDATA[<p><a href="http://www.phpxs.com/post/4543" target="_blank" rel="noopener">原文链接</a></p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;&lt;a href=&quot;http://www.phpxs.com/post/4543&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;原文链接&lt;/a&gt;&lt;/p&gt;
-
-      
-    
-    </summary>
-    
-      <category term="文章" scheme="http://jetwang99.github.io/categories/%E6%96%87%E7%AB%A0/"/>
-    
-    
-      <category term="搞笑" scheme="http://jetwang99.github.io/tags/%E6%90%9E%E7%AC%91/"/>
+      <category term="Ubuntu" scheme="https://ajasonwang.github.io/tags/Ubuntu/"/>
     
   </entry>
   
   <entry>
     <title>放弃那些无用的社交</title>
-    <link href="http://jetwang99.github.io/2015/10/13/drop-meaningless-social-activities/"/>
-    <id>http://jetwang99.github.io/2015/10/13/drop-meaningless-social-activities/</id>
+    <link href="https://ajasonwang.github.io/2015/10/13/drop-meaningless-social-activities/"/>
+    <id>https://ajasonwang.github.io/2015/10/13/drop-meaningless-social-activities/</id>
     <published>2015-10-12T20:34:34.000Z</published>
     <updated>2018-01-24T08:30:24.789Z</updated>
     
@@ -346,17 +342,17 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="文章" scheme="http://jetwang99.github.io/categories/%E6%96%87%E7%AB%A0/"/>
+      <category term="文章" scheme="https://ajasonwang.github.io/categories/%E6%96%87%E7%AB%A0/"/>
     
     
-      <category term="心情" scheme="http://jetwang99.github.io/tags/%E5%BF%83%E6%83%85/"/>
+      <category term="心情" scheme="https://ajasonwang.github.io/tags/%E5%BF%83%E6%83%85/"/>
     
   </entry>
   
   <entry>
     <title>做个聪明的信息消费者</title>
-    <link href="http://jetwang99.github.io/2015/08/21/to-be-a-smart-information-consumer/"/>
-    <id>http://jetwang99.github.io/2015/08/21/to-be-a-smart-information-consumer/</id>
+    <link href="https://ajasonwang.github.io/2015/08/21/to-be-a-smart-information-consumer/"/>
+    <id>https://ajasonwang.github.io/2015/08/21/to-be-a-smart-information-consumer/</id>
     <published>2015-08-20T18:52:52.000Z</published>
     <updated>2018-01-24T08:30:24.811Z</updated>
     
@@ -376,8 +372,8 @@ rm -v !(*.iso|*.zip)
   
   <entry>
     <title>《密码疲劳》读后感</title>
-    <link href="http://jetwang99.github.io/2015/08/19/all-about-password/"/>
-    <id>http://jetwang99.github.io/2015/08/19/all-about-password/</id>
+    <link href="https://ajasonwang.github.io/2015/08/19/all-about-password/"/>
+    <id>https://ajasonwang.github.io/2015/08/19/all-about-password/</id>
     <published>2015-08-18T19:53:53.000Z</published>
     <updated>2018-01-24T08:30:24.787Z</updated>
     
@@ -391,17 +387,17 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="文章" scheme="http://jetwang99.github.io/categories/%E6%96%87%E7%AB%A0/"/>
+      <category term="文章" scheme="https://ajasonwang.github.io/categories/%E6%96%87%E7%AB%A0/"/>
     
     
-      <category term="安全" scheme="http://jetwang99.github.io/tags/%E5%AE%89%E5%85%A8/"/>
+      <category term="安全" scheme="https://ajasonwang.github.io/tags/%E5%AE%89%E5%85%A8/"/>
     
   </entry>
   
   <entry>
     <title>linux中的set命令: set -e 与 set -o pipefail </title>
-    <link href="http://jetwang99.github.io/2015/08/07/linux-set--e/"/>
-    <id>http://jetwang99.github.io/2015/08/07/linux-set--e/</id>
+    <link href="https://ajasonwang.github.io/2015/08/07/linux-set--e/"/>
+    <id>https://ajasonwang.github.io/2015/08/07/linux-set--e/</id>
     <published>2015-08-07T06:04:04.000Z</published>
     <updated>2018-01-24T08:30:24.800Z</updated>
     
@@ -416,17 +412,17 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Linux" scheme="http://jetwang99.github.io/tags/Linux/"/>
+      <category term="Linux" scheme="https://ajasonwang.github.io/tags/Linux/"/>
     
   </entry>
   
   <entry>
     <title>virtualbox压缩vdi硬盘</title>
-    <link href="http://jetwang99.github.io/2015/08/04/shrink-virtualbox-disk-file/"/>
-    <id>http://jetwang99.github.io/2015/08/04/shrink-virtualbox-disk-file/</id>
+    <link href="https://ajasonwang.github.io/2015/08/04/shrink-virtualbox-disk-file/"/>
+    <id>https://ajasonwang.github.io/2015/08/04/shrink-virtualbox-disk-file/</id>
     <published>2015-08-04T01:09:09.000Z</published>
     <updated>2018-01-24T08:30:24.809Z</updated>
     
@@ -439,66 +435,66 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="虚拟化" scheme="http://jetwang99.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
+      <category term="虚拟化" scheme="https://ajasonwang.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
     
   </entry>
   
   <entry>
-    <title>Github Gitcafe 在同一台机器设置SSH密钥</title>
-    <link href="http://jetwang99.github.io/2015/04/26/github-gitcafe-sshkey/"/>
-    <id>http://jetwang99.github.io/2015/04/26/github-gitcafe-sshkey/</id>
+    <title>Github gitee 在同一台机器设置SSH密钥</title>
+    <link href="https://ajasonwang.github.io/2015/04/26/github-gitcafe-sshkey/"/>
+    <id>https://ajasonwang.github.io/2015/04/26/github-gitcafe-sshkey/</id>
     <published>2015-04-25T18:22:22.000Z</published>
-    <updated>2018-01-24T08:30:24.791Z</updated>
+    <updated>2020-02-19T01:18:25.578Z</updated>
     
-    <content type="html"><![CDATA[<hr><p>想想自己以前把博客同步到github和gitcafe不停地敲重复命令的方法就是醉了</p><p>我的机器是Windows7，对应的~/.ssh目录就是C:\Users\yourname\.ssh</p><p>cd C:\Users\yourname<br>md .ssh<br>cd .ssh</p><a id="more"></a><p>添加一个config文件并加入以下内容</p><pre><code>Host github.comUser gitHostname github.comIdentityFile ~/.ssh/githubTCPKeepAlive yesIdentitiesOnly yes</code></pre><p>生成新的SSH 秘钥</p><p>for gitcafe（deprecate）:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f gitcafe</code></pre><p>for github:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f github</code></pre><p>for coding.net:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f id_rsa</code></pre><p>1、用文本工具打开公钥文件*.pub ，复制里面的所有内容到剪贴板。</p><p>2、进入对应账户设置–&gt;SSH 公钥管理设置项，点击添加新公钥 按钮，在 Title 文本框中输入任意字符。</p><p>3、在 Key 文本框粘贴刚才复制的公钥字符串，按保存按钮完成操作。</p><p>4、测试</p><pre><code> C:\Users\sa\.ssh 的目录                                                                                     2016/12/13  08:42    &lt;DIR&gt;          .                                                                     2016/12/13  08:42    &lt;DIR&gt;          ..                                                                    2016/12/13  08:40             1,675 github                                                                2016/12/13  08:40               402 github.pub                                                            2016/12/13  08:42             1,679 id_rsa                                                                2016/12/13  08:42               402 id_rsa.pub                                                            2016/12/13  08:35               410 known_hosts                                                                          6 个文件          4,680 字节                                                                                   2 个目录 29,375,688,704 可用字节                                                                  sa@DESKTOP-OK6H1D8 C:\Users\sa\.ssh                                                                       $ ssh -T git@github.com -i github                                                                         Warning: Permanently added the RSA host key for IP address &apos;192.30.253.112&apos; to the list of known hosts.   Hi jetwang99! You&apos;ve successfully authenticated, but GitHub does not provide shell access.               sa@DESKTOP-OK6H1D8 C:\Users\sa\.ssh                                                                       $ ssh -T git@git.coding.net -i id_rsa                                                                     Hello jetwang99! You&apos;ve connected to Coding.net via SSH successfully!                                    </code></pre><p>成功。</p><p>5、同时部署到github，gitcafe的命令和设置</p><pre><code>git push github master:mastergit push gitcafe master:gitcafe-pagesgit push coding_net master:master</code></pre><p>下面是我的git配置文件：</p><pre><code>[core]    repositoryformatversion = 0    filemode = false    bare = false    logallrefupdates = true    symlinks = false    ignorecase = true    hideDotFiles = dotGitOnly[remote &quot;github&quot;]url = git@github.com:jetwang99/myhexoblog.gitfetch = +refs/heads/*:refs/remotes/github/*[remote &quot;coding_net&quot;]url = git@git.coding.net:jetwang99/myhexoblog.gitfetch = +refs/heads/*:refs/remotes/coding_net/*[branch &quot;master&quot;]remote = githubmerge = refs/heads/master</code></pre>]]></content>
+    <content type="html"><![CDATA[<hr><p>想想自己以前把博客同步到github和gitee不停地敲重复命令的方法就是醉了</p><p>我的机器是Windows7，对应的~/.ssh目录就是C:\Users\yourname\.ssh</p><p>cd C:\Users\yourname<br>md .ssh<br>cd .ssh</p><a id="more"></a><p>添加一个config文件并加入以下内容</p><pre><code>Host github.comUser gitHostname github.comIdentityFile ~/.ssh/githubTCPKeepAlive yesIdentitiesOnly yes</code></pre><p>生成新的SSH 秘钥</p><p>for gitee:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f gitee</code></pre><p>for github:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f github</code></pre><p>for coding.net:</p><pre><code>ssh-keygen -t rsa -C &quot;ajasonwang@gmail.com&quot; -f coding_net</code></pre><p>1、用文本工具打开公钥文件*.pub ，复制里面的所有内容到剪贴板。</p><p>2、进入对应账户设置–&gt;SSH 公钥管理设置项，点击添加新公钥 按钮，在 Title 文本框中输入任意字符。</p><p>3、在 Key 文本框粘贴刚才复制的公钥字符串，按保存按钮完成操作。</p><p>4、测试</p><pre><code> C:\Users\sa\.ssh 的目录                                                                                     2016/12/13  08:42    &lt;DIR&gt;          .                                                                     2016/12/13  08:42    &lt;DIR&gt;          ..                                                                    2016/12/13  08:40             1,675 github                                                                2016/12/13  08:40               402 github.pub                                                            2016/12/13  08:42             1,679 coding_net                                                                2016/12/13  08:42               402 coding_net.pub                                                            2016/12/13  08:35               410 known_hosts                                                                          6 个文件          4,680 字节                                                                                   2 个目录 29,375,688,704 可用字节                                                                  sa@DESKTOP-OK6H1D8 C:\Users\sa\.ssh                                                                       $ ssh -T git@github.com -i github                                                                         Warning: Permanently added the RSA host key for IP address &apos;192.30.253.112&apos; to the list of known hosts.   Hi ajasonwang! You&apos;ve successfully authenticated, but GitHub does not provide shell access.               sa@DESKTOP-OK6H1D8 C:\Users\sa\.ssh                                                                       $ ssh -T git@git.coding.net -i id_rsa                                                                     Hello ajasonwang! You&apos;ve connected to Coding.net via SSH successfully!                                    </code></pre><p>成功。</p><p>5、同时部署到github，gitee的命令和设置</p><pre><code>git push github master:mastergit push gitee master:gitee-pagesgit push coding_net master:master</code></pre><p>下面是我的git配置文件：</p><pre><code>[core]    repositoryformatversion = 0    filemode = false    bare = false    logallrefupdates = true    symlinks = false    ignorecase = true    hideDotFiles = dotGitOnly[remote &quot;github&quot;]url = git@github.com:ajasonwang/myhexoblog.gitfetch = +refs/heads/*:refs/remotes/github/*[remote &quot;coding_net&quot;]url = git@git.coding.net:ajasonwang/myhexoblog.gitfetch = +refs/heads/*:refs/remotes/coding_net/*[remote &quot;gitee&quot;]url = git@gitee.com:ajasonwang/myhexoblog.gitfetch = +refs/heads/*:refs/remotes/gitee/*[branch &quot;master&quot;]remote = githubmerge = refs/heads/master</code></pre>]]></content>
     
     <summary type="html">
     
       &lt;hr&gt;
-&lt;p&gt;想想自己以前把博客同步到github和gitcafe不停地敲重复命令的方法就是醉了&lt;/p&gt;
+&lt;p&gt;想想自己以前把博客同步到github和gitee不停地敲重复命令的方法就是醉了&lt;/p&gt;
 &lt;p&gt;我的机器是Windows7，对应的~/.ssh目录就是C:\Users\yourname\.ssh&lt;/p&gt;
 &lt;p&gt;cd C:\Users\yourname&lt;br&gt;md .ssh&lt;br&gt;cd .ssh&lt;/p&gt;
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Gitcafe" scheme="http://jetwang99.github.io/tags/Gitcafe/"/>
+      <category term="gitee" scheme="https://ajasonwang.github.io/tags/gitee/"/>
     
   </entry>
   
   <entry>
     <title>Azure上部署Jekyll blog的步骤</title>
-    <link href="http://jetwang99.github.io/2015/04/23/deploy-jekyll-blog-to-azure-vm/"/>
-    <id>http://jetwang99.github.io/2015/04/23/deploy-jekyll-blog-to-azure-vm/</id>
+    <link href="https://ajasonwang.github.io/2015/04/23/deploy-jekyll-blog-to-azure-vm/"/>
+    <id>https://ajasonwang.github.io/2015/04/23/deploy-jekyll-blog-to-azure-vm/</id>
     <published>2015-04-23T12:38:38.000Z</published>
-    <updated>2018-01-24T08:30:24.789Z</updated>
+    <updated>2020-02-19T01:18:25.577Z</updated>
     
-    <content type="html"><![CDATA[<hr><p>公司developer有MSDN Subscription的权限，于是每个月都有微软云服务Azure的赠送的50美金费用，具体优惠可以看这个 <a href="http://azure.microsoft.com/en-us/pricing/member-offers/msdn-benefits-details/" target="_blank" rel="noopener">链接</a>，之前一直想用这个福利做点什么,却一直不是很顺利，linux下搭建好的openvpn总是不能用（猜测应该是被GFW和谐了），Windows Server 2012下部署SSTP和L2TP VPN倒是成功翻墙，不过流量费耗的太快，50美金经不起折腾。</p><p>于是就想把博客再挪一个窝，现在做完了，记录以下步骤以备忘。博客地址：<a href="http://jetwang99.cloudapp.net" target="_blank" rel="noopener">该地址目前可能已关闭</a></p><a id="more"></a><p>1，安装Ubuntu 14.10虚拟机并配置Endpoint，我开了一系列端口方便管理</p><p>adminui    TCP    2943    2943    -<br>HTTP    TCP    80    80    -<br>http8080    TCP    8080    8080    -<br>HTTPS    TCP    443    443    -<br>jekyll    TCP    4000    4000    -<br>openvpn    TCP    2443    2443    -<br>openvpnserver    TCP    3194    3194    -<br>SSH    TCP    22    22    -<br>webmin    TCP    10000    10000    -</p><p>2，安装环境依赖</p><p>sudo apt-get update<br>sudo apt-get install git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties</p><p>3，安装rvm，然后安装ruby</p><p>sudo apt-get install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev<br>curl -L <a href="https://get.rvm.io" target="_blank" rel="noopener">https://get.rvm.io</a> | bash -s stable<br>source ~/.rvm/scripts/rvm<br>echo “source ~/.rvm/scripts/rvm” &gt;&gt; ~/.bashrc<br>rvm install 2.1.2<br>rvm use 2.1.2 –default<br>ruby -v</p><p>echo “gem: –no-ri –no-rdoc” &gt; ~/.gemrc</p><p>4，安装Javascript runtime</p><p>sudo add-apt-repository ppa:chris-lea/node.js<br>sudo apt-get update<br>sudo apt-get install nodejs</p><p>5，安装rails</p><p>gem install rails<br>rbenv rehash</p><p>rails -v</p><p>6，配置github账户（这个之前早就搞定了）</p><p>git config –global color.ui true<br>git config –global user.name “YOUR NAME”<br>git config –global user.email “YOUR@EMAIL.com”<br>ssh-keygen -t rsa -C “YOUR@EMAIL.com”</p><p>cat ~/.ssh/id_rsa.pub</p><p>ssh -T git@github.com</p><p>7，安装apache</p><p>sudo apt-get install apache</p><p>8，在apache的/var/www/html下直接clone静态网站</p><p>cd /var/www/html; git clone <a href="https://github.com/xxx/xxx.github.io.git" target="_blank" rel="noopener">https://github.com/xxx/xxx.github.io.git</a></p><p>9，启动apache就发现博客可以访问了，现在设置定时任务自动克隆代码更新博客</p><p>#add crontab<br>0 5,9 <em> </em> * cd /var/www/html/; git pull;</p><p>#check cron service status<br>initctl start cron<br>initctl list | grep cron</p><p>Done.</p>]]></content>
+    <content type="html"><![CDATA[<hr><p>公司developer有MSDN Subscription的权限，于是每个月都有微软云服务Azure的赠送的50美金费用，具体优惠可以看这个 <a href="http://azure.microsoft.com/en-us/pricing/member-offers/msdn-benefits-details/" target="_blank" rel="noopener">链接</a>，之前一直想用这个福利做点什么,却一直不是很顺利，linux下搭建好的openvpn总是不能用（猜测应该是被GFW和谐了），Windows Server 2012下部署SSTP和L2TP VPN倒是成功翻墙，不过流量费耗的太快，50美金经不起折腾。</p><p>于是就想把博客再挪一个窝，现在做完了，记录以下步骤以备忘。博客地址：<a href="http://ajasonwang.cloudapp.net" target="_blank" rel="noopener">该地址目前可能已关闭</a></p><a id="more"></a><p>1，安装Ubuntu 14.10虚拟机并配置Endpoint，我开了一系列端口方便管理</p><p>adminui    TCP    2943    2943    -<br>HTTP    TCP    80    80    -<br>http8080    TCP    8080    8080    -<br>HTTPS    TCP    443    443    -<br>jekyll    TCP    4000    4000    -<br>openvpn    TCP    2443    2443    -<br>openvpnserver    TCP    3194    3194    -<br>SSH    TCP    22    22    -<br>webmin    TCP    10000    10000    -</p><p>2，安装环境依赖</p><p>sudo apt-get update<br>sudo apt-get install git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties</p><p>3，安装rvm，然后安装ruby</p><p>sudo apt-get install libgdbm-dev libncurses5-dev automake libtool bison libffi-dev<br>curl -L <a href="https://get.rvm.io" target="_blank" rel="noopener">https://get.rvm.io</a> | bash -s stable<br>source ~/.rvm/scripts/rvm<br>echo “source ~/.rvm/scripts/rvm” &gt;&gt; ~/.bashrc<br>rvm install 2.1.2<br>rvm use 2.1.2 –default<br>ruby -v</p><p>echo “gem: –no-ri –no-rdoc” &gt; ~/.gemrc</p><p>4，安装Javascript runtime</p><p>sudo add-apt-repository ppa:chris-lea/node.js<br>sudo apt-get update<br>sudo apt-get install nodejs</p><p>5，安装rails</p><p>gem install rails<br>rbenv rehash</p><p>rails -v</p><p>6，配置github账户（这个之前早就搞定了）</p><p>git config –global color.ui true<br>git config –global user.name “YOUR NAME”<br>git config –global user.email “YOUR@EMAIL.com”<br>ssh-keygen -t rsa -C “YOUR@EMAIL.com”</p><p>cat ~/.ssh/id_rsa.pub</p><p>ssh -T git@github.com</p><p>7，安装apache</p><p>sudo apt-get install apache</p><p>8，在apache的/var/www/html下直接clone静态网站</p><p>cd /var/www/html; git clone <a href="https://github.com/xxx/xxx.github.io.git" target="_blank" rel="noopener">https://github.com/xxx/xxx.github.io.git</a></p><p>9，启动apache就发现博客可以访问了，现在设置定时任务自动克隆代码更新博客</p><p>#add crontab<br>0 5,9 <em> </em> * cd /var/www/html/; git pull;</p><p>#check cron service status<br>initctl start cron<br>initctl list | grep cron</p><p>Done.</p>]]></content>
     
     <summary type="html">
     
       &lt;hr&gt;
 &lt;p&gt;公司developer有MSDN Subscription的权限，于是每个月都有微软云服务Azure的赠送的50美金费用，具体优惠可以看这个 &lt;a href=&quot;http://azure.microsoft.com/en-us/pricing/member-offers/msdn-benefits-details/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;链接&lt;/a&gt;，之前一直想用这个福利做点什么,却一直不是很顺利，linux下搭建好的openvpn总是不能用（猜测应该是被GFW和谐了），Windows Server 2012下部署SSTP和L2TP VPN倒是成功翻墙，不过流量费耗的太快，50美金经不起折腾。&lt;/p&gt;
-&lt;p&gt;于是就想把博客再挪一个窝，现在做完了，记录以下步骤以备忘。博客地址：&lt;a href=&quot;http://jetwang99.cloudapp.net&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;该地址目前可能已关闭&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;于是就想把博客再挪一个窝，现在做完了，记录以下步骤以备忘。博客地址：&lt;a href=&quot;http://ajasonwang.cloudapp.net&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;该地址目前可能已关闭&lt;/a&gt;&lt;/p&gt;
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="azure" scheme="http://jetwang99.github.io/tags/azure/"/>
+      <category term="azure" scheme="https://ajasonwang.github.io/tags/azure/"/>
     
   </entry>
   
   <entry>
     <title>安全上网工具</title>
-    <link href="http://jetwang99.github.io/2015/04/22/security-tools/"/>
-    <id>http://jetwang99.github.io/2015/04/22/security-tools/</id>
+    <link href="https://ajasonwang.github.io/2015/04/22/security-tools/"/>
+    <id>https://ajasonwang.github.io/2015/04/22/security-tools/</id>
     <published>2015-04-22T15:12:12.000Z</published>
     <updated>2018-01-24T08:30:24.808Z</updated>
     
@@ -513,10 +509,10 @@ rm -v !(*.iso|*.zip)
     
     </summary>
     
-      <category term="技术" scheme="http://jetwang99.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
+      <category term="技术" scheme="https://ajasonwang.github.io/categories/%E6%8A%80%E6%9C%AF/"/>
     
     
-      <category term="Security" scheme="http://jetwang99.github.io/tags/Security/"/>
+      <category term="Security" scheme="https://ajasonwang.github.io/tags/Security/"/>
     
   </entry>
   
