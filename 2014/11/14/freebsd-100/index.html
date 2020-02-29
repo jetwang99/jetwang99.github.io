@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no">
+<meta name="author" content="J.W">
+
+
+
+<meta name="description" content="分区选择手动，磁盘类型选择GPT，分区类型如下： freebsd-boot 64K(大小必须设置成这样) freebsd-swap 4G 其他分区…">
+<meta name="keywords" content="FreeBSD">
+<meta property="og:type" content="article">
+<meta property="og:title" content="freebsd 10.0 初体验">
+<meta property="og:url" content="https://ajasonwang.github.io/2014/11/14/freebsd-100/index.html">
+<meta property="og:site_name" content="J.W">
+<meta property="og:description" content="分区选择手动，磁盘类型选择GPT，分区类型如下： freebsd-boot 64K(大小必须设置成这样) freebsd-swap 4G 其他分区…">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-02-29T11:33:51.480Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="freebsd 10.0 初体验">
+<meta name="twitter:description" content="分区选择手动，磁盘类型选择GPT，分区类型如下： freebsd-boot 64K(大小必须设置成这样) freebsd-swap 4G 其他分区…">
+
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+
+    <link rel="alternative" href="/atom.xml" title="J.W" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>freebsd 10.0 初体验 | J.W</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        open_in_new: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: undefined
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head></html>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">J.W</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">朝花夕拾</p>
+        
+
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>菜单</li>
+                        <li>标签</li>
+                        
+                        <li>友情链接</li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:ajasonwang@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/ajasonwang" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                                <a class="fa LinkedIn" target="_blank" href="http://www.linkedin.com/in/jet-wang-b8908b10" title="LinkedIn"></a>
+                            
+                                <a class="fa StackOverflow" target="_blank" href="https://stackoverflow.com/users/793507/jet-wang" title="StackOverflow"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/FreeBSD/">FreeBSD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/">GitHub</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Google/">Google</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Jenkins/">Jenkins</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mac/">Mac</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Security/">Security</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Special/">Special</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gitee/">gitee</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/安全/">安全</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/安卓/">安卓</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/心情/">心情</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/朝花夕拾/">朝花夕拾</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/虚拟化/">虚拟化</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://ajasonwang.github.io">GitHub</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">J.W</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">J.W</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">朝花夕拾</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:ajasonwang@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/ajasonwang" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                                <a class="fa LinkedIn" target="_blank" href="http://www.linkedin.com/in/jet-wang-b8908b10" title="LinkedIn"></a>
+                            
+                                <a class="fa StackOverflow" target="_blank" href="https://stackoverflow.com/users/793507/jet-wang" title="StackOverflow"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-freebsd-100" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2014/11/14/freebsd-100/" class="article-date">
+      <time datetime="2014-11-14T12:08:08.000Z" itemprop="datePublished">2014-11-14</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      freebsd 10.0 初体验
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/FreeBSD/">FreeBSD</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <hr>
+<p>分区选择手动，磁盘类型选择GPT，分区类型如下：</p>
+<p>freebsd-boot 64K(大小必须设置成这样)</p>
+<p>freebsd-swap 4G</p>
+<p>其他分区…</p>
+<a id="more"></a>
+<p>系统安装之后：<br>1.首先设置一个比较快的portsnap服务器，如果系统默认的地址你的访问速度也很快，可以不修改</p>
+<p>#vi /etc/portsnap.conf<br>设置SERVERNAME=portsnap.cn.freebsd.org ,你可以设置相对你速度快点的服务器的地址</p>
+<p>2.执行下面命令</p>
+<p>#portsnap fetch extract    这里直接下载ports并且解压</p>
+<p>这样就完成了下载ports系统以及解压到/usr下面了，以后更新只需要执行</p>
+<p>#portsnap fetch update</p>
+<p>FreeBSD安装软件报错 “You must upgrade the ports-mgmt/pkg port first.” 的解决方法</p>
+<h1 id="cd-usr-ports-ports-mgmt-pkg"><a href="#cd-usr-ports-ports-mgmt-pkg" class="headerlink" title="cd /usr/ports/ports-mgmt/pkg"></a>cd /usr/ports/ports-mgmt/pkg</h1><h1 id="make"><a href="#make" class="headerlink" title="make"></a>make</h1><h1 id="make-reinstall"><a href="#make-reinstall" class="headerlink" title="make reinstall"></a>make reinstall</h1><h1 id="pkg2ng"><a href="#pkg2ng" class="headerlink" title="pkg2ng"></a>pkg2ng</h1><p>3.设置最快的ports镜像</p>
+<p>用ports安装软件的时候，如果没有设置相对于你来说最快的ports服务器地址，那就会默认的 <a href="ftp://ftp.freebsd.org/pub/FreeBSD/ports/distfiles/，这个地址对于很多地方来说是很慢的。" target="_blank" rel="noopener">ftp://ftp.freebsd.org/pub/FreeBSD/ports/distfiles/，这个地址对于很多地方来说是很慢的。</a></p>
+<p>修改 /etc/make.conf 加入以下代码</p>
+<p>MASTER_SITE_OVERRIDE=\<br><a href="ftp://ftp.freebsdchina.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}\" target="_blank" rel="noopener">ftp://ftp.freebsdchina.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}\</a><br><a href="ftp://ftp.tw.freebsd.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}" target="_blank" rel="noopener">ftp://ftp.tw.freebsd.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}</a></p>
+<p>如果你有最快的地址，可以加到上面去，下载就会块了</p>
+<p>软件安装<br>这是我最欣赏freebsd的优点之一，软件收集全面，分类明确，安装简便，编译安装方式足够适应系统并优化。<br>举例，比如我要需要安装sudo，值得注意的是，安装前更新下port树不失为一个好习惯。</p>
+<p>查找软件</p>
+<p>#cd /usr/ports</p>
+<p>#make search key=firefox</p>
+<p>运行下列命令进行安装</p>
+<p>#cd /usr/ports/security/sudo</p>
+<p>#make install clean</p>
+<p>会弹出选项，按照需求进行选择，然后OK，等待编译完成吧，这个软件就装完了。<br>通过ports安装的软件，其配置文件路径一般在如下位置</p>
+<p>#vi /usr/local/etc/sudoers</p>
+<h2 id="Same-thing-without-a-password"><a href="#Same-thing-without-a-password" class="headerlink" title="Same thing without a password"></a>Same thing without a password</h2><p>%wheel ALL=(ALL) NOPASSWD: ALL</p>
+<p>表示wheel组的成员，不用切换用户，就可以sudo方式执行root权限的命令</p>
+<p>卸载</p>
+<p>#cd /usr/ports/www/firefox</p>
+<p>#make deinstall clean</p>
+<p>卸载所有安装的ports：</p>
+<p>#cd /var/db/pkg</p>
+<p>#pkg_delete *</p>
+<p>#reboot</p>
+<p>升级 firefox：</p>
+<p>#cd /usr/ports/www/firefox</p>
+<p>#make deinstall reinstall clean</p>
+<p>定制 port</p>
+<p>有时候，你会发现安装某个 port 的时候会有奇怪的事情发生。比如 editors/vim，安装的时候竟然会自动安装 glib1 和 gtk1，而明明自己的系统上已经有了 glib2 和 gtk2。</p>
+<p>这是因为有些 port 有很多不是默认的编译选项。这个时候你需要设定一些环境变量让 port 知道该怎么做。对于 editors/vim，你需要设定 WITH_GTK2 来让 vim 依赖 gtk2 而不是 gtk1。</p>
+<p>你可以在 csh 下：</p>
+<p>setenv WITH_GTK2<br>或者在 bash 下：</p>
+<p>export WITH_GTK2=yes<br>也可以把这个选项写到 /etc/make.conf 里面：</p>
+<p>WITH_GTK2=yes<br>或者你也可以指定在更新/安装某个 port 的时候使用特定的环境变量。添加如下代码（注：csh 的语法，不是 sh/bash）到 /etc/make.conf 里面：</p>
+<p>.if ${.CURDIR:M*/ports/editors/vim}<br>WITH_GTK2=yes<br>.endif<br>这样下次升级 editors/vim 的时候就会自动依赖到 gtk2 而不是 gtk1 了。</p>
+<p>定制 Ports 系统</p>
+<p>1 设定 Ports 树的位置</p>
+<p>当你把 Ports 树放在非默认位置（/usr/ports）的时候，就需要修改一些环境变量让 Ports 中的工具知道你的修改。这个变量就是 PORTSDIR。 比如，你把 Ports 树放在了 /opt/ports，那么 在 sh/bash 中，执行如下命令：</p>
+<p>export PORTSDIR=/opt/ports<br>在 csh 中，你需要执行如下命令：</p>
+<p>setenv PORTSDIR /opt/ports<br>妥贴的办法是把这个环境变量放到超级用户 root 的 dot.cshrc 文件（/root/.cshrc）里面。又或者你想让普通用户也能用到这个环境变量，可以考虑放到 /etc/profile 或者 /etc/csh.cshrc 里面。</p>
+<p>注意！如果你使用 portsnap 命令来同步 Ports 树，而你的 Ports 树不在默认位置，请在 /etc/portsnap.conf 中也设定你的 Ports 树的位置。</p>
+<p>注意！如果你使用 csup/cvsup 同步 Ports 树，而你的 Ports 树不在默认位置，请在你的 ports-supfile 中也设定你的 Ports 树的位置。</p>
+<p>2 设定 dist 文件的位置</p>
+<p>所谓 dist 文件，就是 port 的源码。一般情况下，这些源码都是用 tar 打包然后用 bzip2 压缩的。默认的位置是在 $PORTSDIR/distfiles。 但是，你也可以把这些 dist 文件放到另外的地方。需要设定的环境变量就是 DISTDIR。你可以根据上面的例子来设定这个环境变量。</p>
+<p>3 设定工作目录</p>
+<p>如果没有设定工作目录，ports 系统默认在 port 的目录进行编译。比如你的 firefox 在 /usr/ports/www/firefox，那么默认将在 /usr/ports/www/firefox/work 下编译 firefox。这样有一个缺点，如果你的 /usr 目录不是很大的话，在编译某些大软件的时候，比如 gnome，kde 桌面系统时，你的 /usr 空间可能会不足。</p>
+<p>解决的办法之一就是设定环境变量 WRKDIRPREFIX，比如</p>
+<p>export WRKDIRPREFIX=/opt/obj/portbld</p>
+<p>这个时候 ports 系统就会到 /opt/obj/portbld/usr/ports/www/firefox/work 下编译 firefox。</p>
+<p>运行你安装的软件<br>这里有一点小麻烦，但绝对不大，只占用你大约不到30秒的时间。如果你安装了应用软件，比如nginx，请按照下列步骤完成</p>
+<p>vi /etc/rc.conf</p>
+<p>然后新起一行，输入</p>
+<p>nginx_enable=”YES”</p>
+<p>保存退出<br>然后运行下面的命令</p>
+<p>cd /usr/local/etc/rc.d/nginx start</p>
+<p>此时访问你的服务器，如能看到nginx的欢迎信息，就说明你的nginx正常启动了。</p>
+<p>即时生效新安装的命令</p>
+<p>FreeBSD 的cshell会缓存环境变量PATH中指定的目录里的可执行文件，以加快查找速度，这会造成一些新安装的命令无法运行，最典型的例子就是刚安装的vim居然提示找不到命令。用如下命令解决问题：</p>
+<p>rehash</p>
+<p>列出无法补齐的候选文件</p>
+<p>想要让FreeBSD的csh像bash那样按tab列出无法补齐的候选文件，标准的方法是按Ctrl+D。但如果一定要用tab的话，在/etc/csh.cshrc中加入：</p>
+<p>set autolist</p>
+<p>有关于FreeBSD的网络配置<br>虽然sysinstall也能修改主机的网络相关，但修改完网卡的相关参数后sysinstall会提示Would you liketo bring the le0 interface up right now?（你想让le0生效吗?）但我兴冲冲的执行此步后，发现新改的网卡参数并没重新重奖；所以我建议修改/etc/rc.conf文件后用命令使其立即生效。</p>
+<p>#vi /etc/rc.conf<br>hostname=”bsd.mydomain.com”<br>ifconfig_le0=”inet 192.168.1.108 netmask 255.255.255.0”<br>defaultrouter=”192.168.1.1”   #defaultrouter是网关地址</p>
+<p>修改后需要让修改立即生效。这里不建议reboot服务器，有个小技巧与大家分享下，即<br>sh /etc/rc</p>
+<p>域名解析DNS配置如下，示例为google提供的一组DNS服务器地址</p>
+<p>#vi /etc/resolv.conf<br>nameserver 8.8.8.8<br>nameserver 8.8.4.4</p>
+<p>进行安全的远程登录</p>
+<p>修改/etc/ssh/sshd_config文件，</p>
+<p>Port 2122  # 默认为22，更改后减少别人暴力破解的机会</p>
+<p>AllowUsers user1,user2 #指定能够远程登录的用户,其它用户登录时直接拒绝</p>
+<p>#RSAAuthentication yes</p>
+<p>#PubkeyAuthentication yes</p>
+<p>#AuthorizedKeysFile      .ssh/authorized_keys</p>
+<p>备注：<br>密钥认证，默认已经设置好，在用户根目录生成 .ssh/authorized_keys即可。<br>密钥可借助SecureCRT、puttygent等工具协助完成</p>
+<p>查看FreeBSD服务器的一些基础情况和信息</p>
+<p>①查看CPU：</p>
+<p>sysctl hw.model hw.ncpu<br>dmesg | grep “CPU:”</p>
+<p>②查看内存：</p>
+<p>dmesg | grep “real memory” | awk -F ‘[( )]’ ‘{print $2,$4,$7,$8}’</p>
+<p>查看swap：</p>
+<p>top | grep “Swap:” | awk ‘{print $1,$2}’</p>
+<p>③查看硬盘：</p>
+<p>diskinfo -vt /dev/ad0</p>
+<p>④看硬盘大小及硬件使用情况：</p>
+<p>dmesg | grep “sector” | awk ‘{print $1,$2}’<br>df -h</p>
+<p>⑤查看服务器品牌：</p>
+<p>dmesg | grep “ACPI APIC”</p>
+<p>⑥查看系统内核，命令跟Linux下一样：</p>
+<p>uname -a</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>本文标题:</span><a href="/2014/11/14/freebsd-100/">freebsd 10.0 初体验</a></p>
+        <p><span>文章作者:</span><a href="/" title="回到主页">J.W</a></p>
+        <p><span>发布时间:</span>2014-11-14, 20:08:08</p>
+        <p><span>最后更新:</span>2020-02-29, 19:33:51</p>
+        <p>
+            <span>原始链接:</span><a class="post-url" href="/2014/11/14/freebsd-100/" title="freebsd 10.0 初体验">https://ajasonwang.github.io/2014/11/14/freebsd-100/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://ajasonwang.github.io/2014/11/14/freebsd-100/　　作者: J.W" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>许可协议:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"署名-非商用-相同方式共享 4.0"</a> 转载请保留原文链接及作者。
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2014/11/18/memorial-day/">
+                    今天是个值得纪念的日子
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2014/11/14/linux-ubuntu-1404/">
+                    linux ubuntu 14.04 初体验
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#cd-usr-ports-ports-mgmt-pkg"><span class="toc-number">1.</span> <span class="toc-text">cd /usr/ports/ports-mgmt/pkg</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#make"><span class="toc-number">2.</span> <span class="toc-text">make</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#make-reinstall"><span class="toc-number">3.</span> <span class="toc-text">make reinstall</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#pkg2ng"><span class="toc-number">4.</span> <span class="toc-text">pkg2ng</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Same-thing-without-a-password"><span class="toc-number">4.1.</span> <span class="toc-text">Same thing without a password</span></a></li></ol></li></ol>
+</div>
+<style>
+    .left-col .switch-btn,
+    .left-col .switch-area {
+        display: none;
+    }
+</style>
+
+<input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+<script>
+    yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+</script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"freebsd 10.0 初体验　| J.W　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+      <div class="duoshuo" id="comments">
+    <div id="comment-box" ></div>
+    <div class="ds-thread" id="ds-thread" data-thread-key="2014/11/14/freebsd-100/" data-title="freebsd 10.0 初体验" data-url="https://ajasonwang.github.io/2014/11/14/freebsd-100/"></div>
+    <script>
+        var duoshuoQuery = {short_name:"mogging"};
+        var loadComment = function(){
+            var d = document, s = d.createElement('script');
+            s.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+            s.async = true; s.charset = 'UTF-8';
+            (d.head || d.body).appendChild(s);
+        }
+
+        
+    </script>
+    
+    <script> loadComment(); </script>
+
+</div>
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2014/11/18/memorial-day/" title="上一篇: 今天是个值得纪念的日子">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2014/11/14/linux-ubuntu-1404/" title="下一篇: linux ubuntu 14.04 初体验">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/02/29/k8s-cicd-pipeline-setup/">k8s ci & cd pipeline</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/">Jenkins安装配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/">阿里云服务器被发现挖矿程序后的处理</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/26/nfs-permission/">nfs权限问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/30/delete-long-path-in-windows/">Windows中删除路径太长目录及文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/07/01/secure-ssh-trust-connection/">增加ssh无密码信任连接的安全性</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/06/03/windows-malformation-folder/">Windows 畸形文件夹</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/05/19/exclude-file-when-using-rm/">在 Bash 中删除除某些文件外的所有文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/04/29/linux-ulimit-nproc-set/">正确配置Linux系统ulimit/nproc值的方法（转）</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/23/pip-install-unable-to-find-vcvarsallbat/">pip install 的报错 Unable to find vcvarsall.bat</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/13/ubuntu-hang-on-boot/">双系统进Ubuntu开机卡死</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/10/13/drop-meaningless-social-activities/">放弃那些无用的社交</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/21/to-be-a-smart-information-consumer/">做个聪明的信息消费者</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/19/all-about-password/">《密码疲劳》读后感</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/07/linux-set--e/">linux中的set命令: set -e 与 set -o pipefail </a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/04/shrink-virtualbox-disk-file/">virtualbox压缩vdi硬盘</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/26/github-gitcafe-sshkey/">Github gitee 在同一台机器设置SSH密钥</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/22/security-tools/">安全上网工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/01/curl-http_code/">curl http_code 状态码及意义</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/24/love-page/">love page</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/16/linux-find-xargs-print0/">linux find xargs print0</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/29/git-reset/">git 放弃本地修改</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/zhixiangshu/">致橡树</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/April-twilight/">四月的黄昏</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/10/god-father-s-outlook-on-life/">《教父》里的人生观</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/gitcafe-qianyi/">GitCafe 迁移</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/access-log-for-this-blog/">今天的网站访问记录</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/08/googleadsense/">今天尝试了Google Adsense</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/07/what-is-the-difference-of-two-skype-in-google-play/">Google Play 中有两个 Skype</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/06/systematization-lead-to-result/">制度决定结果</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/05/a-splendid-bug-finding-story/">我听到过的最精彩的一个软件纠错故事</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/03/what-is-hr-thinking-about-job-hunters-over-30/">HR 怎么看待三十岁以上的基础岗位求职者</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/01/some-words-written-at-the-begining-of-december-2014/">写在2014年最后一个月的月初</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/28/do-not-say-everything-I-did-is-for-you/">别再讲“我是为你好”的混账话</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/18/memorial-day/">今天是个值得纪念的日子</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/freebsd-100/">freebsd 10.0 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/linux-ubuntu-1404/">linux ubuntu 14.04 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/07/windows-import-cer-file-command/">windows 安装证书命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-webdeploy/">iis webdeploy</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-7-appcmd/">iis 7 appcmd</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-vim-save-file-none-root/">linux vim 非root用户不能保存文件的技巧</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-ulimit/">mysql ulimit 案例（转载）</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-backup-with-mysqldump/">mysql backup with mysqldump</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-ssh-login-slow/">linux ssh 登陆慢</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/powershell-clean-disk-space/">powershell 清理磁盘空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/linux-rm-rf-recovery/">rm rf 误删恢复</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/virtualbox-os-x-mavericks-screen-resolution/">VirtualBox OS X Mavericks 虚拟机分辨率调整</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/08/13/hello-my-2014-august/">Hello World, 于2014年八月!</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2014-2020 J.W
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-44254436-3', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html >
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="J.W" />
+
+
+
+<meta name="description" content="在kubernetes集群建立CICD流水线备忘">
+<meta name="keywords" content="Kubernetes">
+<meta property="og:type" content="article">
+<meta property="og:title" content="k8s ci &amp; cd pipeline">
+<meta property="og:url" content="https://ajasonwang.github.io/2020/02/19/k8s-cicd-pipeline-setup/index.html">
+<meta property="og:site_name" content="J.W">
+<meta property="og:description" content="在kubernetes集群建立CICD流水线备忘">
+<meta property="og:image" content="https://ajasonwang.github.io/album/other/cicdpipeline.jpg">
+<meta property="og:updated_time" content="2020-02-19T03:29:47.296Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="k8s ci &amp; cd pipeline">
+<meta name="twitter:description" content="在kubernetes集群建立CICD流水线备忘">
+<meta name="twitter:image" content="https://ajasonwang.github.io/album/other/cicdpipeline.jpg">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternative" href="/atom.xml" title="J.W" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>k8s ci &amp; cd pipeline | J.W</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        open_in_new: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: undefined
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.png" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">J.W</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">朝花夕拾</p>
+        
+
+        
+
+
+        
+            <div id="switch-btn" class="switch-btn">
+                <div class="icon">
+                    <div class="icon-ctn">
+                        <div class="icon-wrap icon-house" data-idx="0">
+                            <div class="birdhouse"></div>
+                            <div class="birdhouse_holes"></div>
+                        </div>
+                        <div class="icon-wrap icon-ribbon hide" data-idx="1">
+                            <div class="ribbon"></div>
+                        </div>
+                        
+                        <div class="icon-wrap icon-link hide" data-idx="2">
+                            <div class="loopback_l"></div>
+                            <div class="loopback_r"></div>
+                        </div>
+                        
+                        
+                    </div>
+                    
+                </div>
+                <div class="tips-box hide">
+                    <div class="tips-arrow"></div>
+                    <ul class="tips-inner">
+                        <li>Menu</li>
+                        <li>Tags</li>
+                        
+                        <li>Friends</li>
+                        
+                        
+                    </ul>
+                </div>
+            </div>
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">所有文章</a></li>
+                        
+                            <li><a href="/tags/">标签云</a></li>
+                        
+                            <li><a href="/about/">关于我</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:ajasonwang@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/ajasonwang" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                                <a class="fa LinkedIn" target="_blank" href="http://www.linkedin.com/in/jet-wang-b8908b10" title="LinkedIn"></a>
+                            
+                                <a class="fa StackOverflow" target="_blank" href="https://stackoverflow.com/users/793507/jet-wang" title="StackOverflow"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                <section class="switch-part switch-part2">
+                    <div class="widget tagcloud" id="js-tagcloud">
+                        <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/FreeBSD/">FreeBSD</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/">Git</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub/">GitHub</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Google/">Google</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Jenkins/">Jenkins</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mac/">Mac</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/">Python</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Security/">Security</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Special/">Special</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ubuntu/">Ubuntu</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Windows/">Windows</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/gitee/">gitee</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/安全/">安全</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/安卓/">安卓</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/心情/">心情</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/朝花夕拾/">朝花夕拾</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/虚拟化/">虚拟化</a></li></ul>
+                    </div>
+                </section>
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a target="_blank" class="main-nav-link switch-friends-link" href="https://ajasonwang.github.io">GitHub</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">J.W</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.png" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">J.W</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">朝花夕拾</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">所有文章</a></li>
+                
+                    <li><a href="/tags/">标签云</a></li>
+                
+                    <li><a href="/about/">关于我</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa Email" target="_blank" href="mailto:ajasonwang@gmail.com" title="Email"></a>
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/ajasonwang" title="GitHub"></a>
+                            
+                                <a class="fa RSS" target="_blank" href="/atom.xml" title="RSS"></a>
+                            
+                                <a class="fa LinkedIn" target="_blank" href="http://www.linkedin.com/in/jet-wang-b8908b10" title="LinkedIn"></a>
+                            
+                                <a class="fa StackOverflow" target="_blank" href="https://stackoverflow.com/users/793507/jet-wang" title="StackOverflow"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="Tags" friends="Friends" about="About Me"/>
+</nav>
+      <div class="body-wrap"><article id="post-k8s-cicd-pipeline-setup" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2020/02/19/k8s-cicd-pipeline-setup/" class="article-date">
+      <time datetime="2020-02-19T01:28:22.026Z" itemprop="datePublished">2020-02-19</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      k8s ci &amp; cd pipeline
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/技术/">技术</a>
+    </div>
+
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <hr>
+<h1 id="overview"><a href="#overview" class="headerlink" title="overview"></a>overview</h1><p><a href="/album/other/cicdpipeline.jpg"><img src="/album/other/cicdpipeline.jpg" alt=""></a></p>
+<a id="more"></a>
+<h1 id="setup-nexus-private-registry"><a href="#setup-nexus-private-registry" class="headerlink" title="setup nexus private registry"></a>setup nexus private registry</h1><h4 id="generate-ssl-certificate-and-restart-nexus"><a href="#generate-ssl-certificate-and-restart-nexus" class="headerlink" title="generate ssl certificate and restart nexus"></a>generate ssl certificate and restart nexus</h4><pre><code>mkdir -p ${nexus_home}/etc/ssl
+cd ${nexus_home}/etc/ssl
+
+export NEXUS_HOST=
+export NEXUS_DOMAIN=
+export NEXUS_IP_ADDRESS=192.168.5.12
+export NEXUS_SSL_PORT=18444
+
+keytool -genkeypair -keystore keystore.jks -storepass 5St00g3s -keypass 5St00g3s -alias jetty -keyalg RSA -keysize 2048 -validity 5000 -dname &quot;CN=$NEXUS_DOMAIN, OU=Example, O=Sonatype, L=Unspecified, ST=Unspecified, C=US&quot; -ext &quot;SAN=DNS:$NEXUS_DOMAIN,IP:$NEXUS_IP_ADDRESS&quot; -ext &quot;BC=ca:true&quot;
+
+openssl req -newkey rsa:4096 -nodes -sha256 -keyout ${nexus_home}/etc/ssl/nexus.key -x509 -days 3650 -out ${nexus_home}/etc/ssl/nexus.cert
+
+ls ${nexus_home}/etc/ssl/
+keystore.jks  nexus.cert  nexus.key
+</code></pre><h4 id="etc-nexus-default-properties"><a href="#etc-nexus-default-properties" class="headerlink" title="etc/nexus-default.properties"></a>etc/nexus-default.properties</h4><pre><code>## DO NOT EDIT - CUSTOMIZATIONS BELONG IN $data-dir/etc/nexus.properties
+##
+# Jetty section
+application-port=8081
+application-host=192.168.5.12
+application-port-ssl=8444
+nexus-args=${jetty.etc}/jetty.xml,${jetty.etc}/jetty-http.xml,${jetty.etc}/jetty-https.xml,${jetty.etc}/jetty-requestlog.xml
+nexus-context-path=/
+# Nexus section
+nexus-edition=nexus-pro-edition
+nexus-features=\
+nexus-pro-feature
+
+nexus.hazelcast.discovery.isEnabled=true
+</code></pre><h4 id="etc-nexus-properties"><a href="#etc-nexus-properties" class="headerlink" title="etc/nexus.properties"></a>etc/nexus.properties</h4><pre><code>application-port-ssl=18444
+</code></pre><h4 id="restart-nexus-service"><a href="#restart-nexus-service" class="headerlink" title="restart nexus service"></a>restart nexus service</h4><pre><code>${nexus_home}/bin/nexus restart
+</code></pre><h4 id="create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><a href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI" class="headerlink" title="create nexus repository and set Repository Connectors in nexus UI"></a>create nexus repository and set Repository Connectors in nexus UI</h4><pre><code>#hosted type repository for docker push
+HTTPS: 18444
+
+#group type repository for docker pull
+HTTPS: 18445
+</code></pre><h4 id="setup-ssl-trust-in-docker-client-node-not-always-necessary"><a href="#setup-ssl-trust-in-docker-client-node-not-always-necessary" class="headerlink" title="setup ssl trust in docker client node(not always necessary)"></a>setup ssl trust in docker client node(not always necessary)</h4><pre><code>#remove old cert
+cd /etc/pki/ca-trust/source/anchors
+rm –f your_domain_name.crt
+
+
+#client trust
+export DOMAIN_NAME=your_domain_name
+export TCP_PORT=18444
+openssl s_client -connect $DOMAIN_NAME:$TCP_PORT -showcerts &lt;/dev/null 2&gt;/dev/null | openssl x509 -outform PEM | tee /etc/pki/ca-trust/source/anchors/$DOMAIN_NAME.crt
+
+update-ca-trust
+</code></pre><h4 id="configure-etc-docker-daemon-json-and-restart-docker-service"><a href="#configure-etc-docker-daemon-json-and-restart-docker-service" class="headerlink" title="configure /etc/docker/daemon.json and restart docker service"></a>configure /etc/docker/daemon.json and restart docker service</h4><pre><code>{
+    &quot;insecure-registries&quot; : [&quot;your_domain_name:18444&quot;,&quot;your_domain_name:18445&quot;]
+}
+</code></pre><h4 id="restart-docker-service-and-login"><a href="#restart-docker-service-and-login" class="headerlink" title="restart docker service and login"></a>restart docker service and login</h4><pre><code>/bin/systemctl restart docker.service
+
+#test docker login
+docker login your_domain_name:18444
+docker login your_domain_name:18445
+</code></pre><h1 id="create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><a href="#create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm" class="headerlink" title="create k8s ha cluster with ansible-galaxy scrips using kubeadm"></a>create k8s ha cluster with ansible-galaxy scrips using kubeadm</h1><h1 id="helm-install-jenkins-service-in-k8s"><a href="#helm-install-jenkins-service-in-k8s" class="headerlink" title="helm install jenkins service in k8s"></a>helm install jenkins service in k8s</h1><h1 id="create-ci-cd-pipeline-in-k8s"><a href="#create-ci-cd-pipeline-in-k8s" class="headerlink" title="create ci cd pipeline in k8s"></a>create ci cd pipeline in k8s</h1><pre><code>pipeline {
+    agent { label &quot;jenkins-jenkins-slave&quot; } // jenkins slave with maven sonar-scanner tools
+
+    parameters {
+        // build param
+        string(name: &apos;PKG_VERSION&apos;, defaultValue: &apos;1.0.0&apos;, description: &apos;固定值，不需要填写&apos;)
+        string(name: &apos;BRANCH&apos;, defaultValue: &apos;master&apos;, description: &apos;固定值，不需要填写&apos;)
+        string(name: &apos;SONAR_PROJECT_NAME&apos;, defaultValue: &apos;sonar_project_name&apos;, description: &apos;固定值，不需要填写&apos;)
+
+        // deploy param
+        string(name: &apos;ENVTYPE_DEV&apos;, defaultValue: &apos;msdev&apos;, description: &apos;固定值，不需要填写\n\n&apos;)
+        string(name: &apos;ENVTYPE_QA&apos;, defaultValue: &apos;msqa&apos;, description: &apos;固定值，不需要填写\n\n&apos;)
+
+        choice(name: &apos;ENABLE_SONAR&apos;, choices: [&apos;N&apos;, &apos;Y&apos;], description: &apos;是否开启SONAR扫描&apos;)
+        choice(name: &apos;DEPLOY_QA&apos;, choices: [&apos;N&apos;, &apos;Y&apos;], description: &apos;是否发布QA环境\n\n&apos;)
+    }
+
+    environment {
+        SONAR_HOST = &quot;http://nginx_url/sonarqube&quot;
+        SONAR_TOKEN = &quot;&quot;
+
+        // nexus for artifacts upload
+        NEXUS_VERSION = &quot;nexus3&quot;
+        NEXUS_PROTOCOL = &quot;http&quot;
+        NEXUS_URL = &quot;&quot;
+        NEXUS_REPOSITORY = &quot;snapshot&quot;
+        NEXUS_GROUP = &quot;wise&quot;
+        NEXUS_ARTIFACT_ID = &quot;ms-assembly&quot;
+        NEXUS_CREDENTIAL_ID = &quot;&quot;
+
+        releasePackageDirPath = &quot;RELEASE/patch/jenkins/${PILOT_PROJECT}&quot;
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: &apos;5&apos;))
+        preserveStashes()
+    }
+
+    stages {
+        stage(&quot;Code Checkout&quot;) {
+            steps { ... }
+        }
+
+        stage(&apos;Build&apos;) {
+            steps {
+                script{
+                    try {
+                        script {
+                            try {
+                                sh &apos;mvn package -f project_name/pom.xml -Dmaven.test.skip=true&apos;
+                            } finally { }
+                        }
+                    } catch(error) {
+                        echo &quot;First build failed, let&apos;s retry if accepted&quot;
+                        retry(2) {
+                            script {
+                                try {
+                                    sh &apos;mvn package -f project_name/pom.xml -Dmaven.test.skip=true&apos;
+                                } finally { }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Assemble &amp; Test&apos;) {
+            parallel {
+                stage(&quot;Assemble&quot;) {
+                    steps { sh &quot;sh package.sh&quot; }
+                }
+            }
+        }
+
+        stage(&apos;Scan &amp; Upload&apos;) {
+            parallel {
+                stage(&apos;Archive Artifacts&apos;) {
+                    steps {
+                        sh &quot;ls -lrt ${WORKSPACE}&quot;
+                        archiveArtifacts &quot;project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip&quot;
+
+                        sh &apos;&apos;&apos;
+                        [ ! -d ${HOME}/${releasePackageDirPath} ] &amp;&amp; mkdir -p ${HOME}/${releasePackageDirPath}
+                        cp -a project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip ${HOME}/${releasePackageDirPath}
+                        &apos;&apos;&apos;
+                    }
+                }
+                // stage(&quot;Upload Artifacts&quot;) {
+                //  steps {
+                //      nexusArtifactUploader \
+                //          credentialsId: &quot;${NEXUS_CREDENTIAL_ID}&quot;, \
+                //          groupId: &quot;${NEXUS_GROUP}&quot;, \
+                //          nexusUrl: &quot;${NEXUS_URL}&quot;, \
+                //          nexusVersion: &quot;${NEXUS_VERSION}&quot;, \
+                //          protocol: &quot;${NEXUS_PROTOCOL}&quot;, \
+                //          repository: &quot;${NEXUS_REPOSITORY}&quot;, \
+                //          version: &quot;${PKG_VERSION}&quot;, \
+                //          artifacts: [
+                //              [artifactId: &quot;${NEXUS_ARTIFACT_ID}&quot;, \
+                //              classifier: &apos;&apos;, \
+                //              file: &quot;project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip&quot;, \
+                //              type: &apos;zip&apos;]
+                //          ]
+                //  }
+                // }
+                stage(&quot;SonarQube Scan&quot;) {
+                    steps {
+                        script {
+                            if (env.ENABLE_SONAR == &apos;Y&apos;) {
+                                withSonarQubeEnv(&apos;dev_sonarqube&apos;) { // configured in jenkins setting
+                                    sh &apos;&apos;&apos;sonar-scanner -Dsonar.host.url=${SONAR_HOST} \
+                                        -Dsonar.sourceEncoding=UTF-8 \
+                                        -Dsonar.sources=. \
+                                        -Dsonar.language=java \
+                                        -Dsonar.login=${SONAR_TOKEN} \
+                                        -Dsonar.projectVersion=${BRANCH} \
+                                        -Dsonar.java.binaries=. \
+                                        -Dsonar.projectKey=${SONAR_PROJECT_NAME} \
+                                        -Dsonar.java.libraries=. \
+                                        -Dsonar.projectName=${SONAR_PROJECT_NAME}
+                                    &apos;&apos;&apos;
+                                }
+                                sleep(120)
+                                timeout(time: 1, unit: &apos;MINUTES&apos;) {
+                                    def qg = waitForQualityGate()
+                                    if (qg.status != &apos;SUCCESS&apos;) {
+                                        echo &quot;Pipeline aborted due to quality gate failure: ${qg.status}&quot;
+                                        // error &quot;Pipeline aborted due to quality gate failure: ${qg.status}&quot;
+                                    }
+                                }
+                            } else { }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Deploy DEV&apos;) {
+            agent { label &quot;jenkins-slave-cap&quot; } // ruby capistrano slave, deploy dev by default
+            steps {
+                script {
+                    // sh &quot;cap -T&quot;
+
+                    sh &apos;&apos;&apos;#!/bin/bash -ex
+
+                    cd  ${HOME}/${releasePackageDirPath}
+                    md5sum project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip &gt; project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip.md5sum
+                    [ -d project_name ] &amp;&amp; rm -rf project_name
+                    unzip -o project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip
+
+                    cd /data/relmgt
+                    cap  ${ENVTYPE_DEV} patch:upload CHG=${HOME}/${releasePackageDirPath}/project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip PROJECT=${PILOT_PROJECT}
+                    cap  ${ENVTYPE_DEV} patch:upload CHG=${HOME}/${releasePackageDirPath}/project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip.md5sum PROJECT=${PILOT_PROJECT}
+                    cap ${ENVTYPE_DEV} patch:DIFFZIP CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT}
+
+                    cap ${ENVTYPE_DEV} cmd CMD=&apos;cd $PROJECT_ROOT/project_name; chmod 755 *.sh; sh stopServers.sh DEV &amp;&apos; -z10.25.172.164
+                    sleep 10
+
+                    #cap ${ENVTYPE_DEV}  patch:BACKUP TEAM=${TEAM}
+                    cap ${ENVTYPE_DEV}  patch:UNPACK CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT} ZIP=Y
+                    sleep 10
+                    #echo &quot;check the md5 value for deployed version&quot;
+                    #cap ${ENVTYPE_DEV} patch:CHECKSUM TEAM=${TEAM} PROJECT=${PILOT_PROJECT}
+                    #cap ${ENVTYPE_DEV} patch:DIFFMD5  TEAM=${TEAM} CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT}
+                    cap ${ENVTYPE_DEV} cmd CMD=&apos;cd $PROJECT_ROOT/project_name; chmod 755 *.sh; sh -l startServers.sh DEV &gt;/dev/null &amp;&apos; -z10.25.172.164
+                    cap ${ENVTYPE_DEV} cmd CMD=&apos;. ./env; chmod -R 755 $PROJECT_ROOT/&apos; -z10.25.172.164
+
+                    &apos;&apos;&apos;
+                }
+            }
+        }
+
+        stage(&apos;Deploy QA&apos;) {
+            agent { label &quot;jenkins-slave-cap&quot; }
+            when {
+                environment name: &apos;DEPLOY_QA&apos;, value: &apos;Y&apos;
+            }
+            steps {
+                script {
+                    // refer dev deploy script
+                }
+            }
+        }
+    }
+}
+</code></pre>
+      
+    </div>
+    
+  </div>
+  
+    
+    <div class="copyright">
+        <p><span>Title:</span><a href="/2020/02/19/k8s-cicd-pipeline-setup/">k8s ci &amp; cd pipeline</a></p>
+        <p><span>Author:</span><a href="/" title="Back to Homepage">J.W</a></p>
+        <p><span>Created:</span>2020-02-19, 09:28:22</p>
+        <p><span>Updated:</span>2020-02-19, 11:29:47</p>
+        <p>
+            <span>Full URL:</span><a class="post-url" href="/2020/02/19/k8s-cicd-pipeline-setup/" title="k8s ci &amp; cd pipeline">https://ajasonwang.github.io/2020/02/19/k8s-cicd-pipeline-setup/</a>
+            <span class="copy-path" data-clipboard-text="From https://ajasonwang.github.io/2020/02/19/k8s-cicd-pipeline-setup/　　By J.W" title="Copy Article&#39;s Link &amp; Author"><i class="fa fa-clipboard"></i></span>
+            <script> var clipboard = new Clipboard('.copy-path'); </script>
+        </p>
+        <p>
+            <span>License:</span><i class="fa fa-creative-commons"></i> <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target = "_blank">"CC BY-NC-SA 4.0"</a> Keep Link &amp; Author if Distribute.
+        </p>
+    </div>
+
+
+
+    <nav id="article-nav">
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/">
+                    Jenkins安装配置
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">Contents</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#overview"><span class="toc-number">1.</span> <span class="toc-text">overview</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#setup-nexus-private-registry"><span class="toc-number">2.</span> <span class="toc-text">setup nexus private registry</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#generate-ssl-certificate-and-restart-nexus"><span class="toc-number">2.0.0.1.</span> <span class="toc-text">generate ssl certificate and restart nexus</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#etc-nexus-default-properties"><span class="toc-number">2.0.0.2.</span> <span class="toc-text">etc/nexus-default.properties</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#etc-nexus-properties"><span class="toc-number">2.0.0.3.</span> <span class="toc-text">etc/nexus.properties</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#restart-nexus-service"><span class="toc-number">2.0.0.4.</span> <span class="toc-text">restart nexus service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><span class="toc-number">2.0.0.5.</span> <span class="toc-text">create nexus repository and set Repository Connectors in nexus UI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setup-ssl-trust-in-docker-client-node-not-always-necessary"><span class="toc-number">2.0.0.6.</span> <span class="toc-text">setup ssl trust in docker client node(not always necessary)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#configure-etc-docker-daemon-json-and-restart-docker-service"><span class="toc-number">2.0.0.7.</span> <span class="toc-text">configure /etc/docker/daemon.json and restart docker service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#restart-docker-service-and-login"><span class="toc-number">2.0.0.8.</span> <span class="toc-text">restart docker service and login</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><span class="toc-number">3.</span> <span class="toc-text">create k8s ha cluster with ansible-galaxy scrips using kubeadm</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#helm-install-jenkins-service-in-k8s"><span class="toc-number">4.</span> <span class="toc-text">helm install jenkins service in k8s</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#create-ci-cd-pipeline-in-k8s"><span class="toc-number">5.</span> <span class="toc-text">create ci cd pipeline in k8s</span></a></li></ol>
+</div>
+<style>
+    .left-col .switch-btn,
+    .left-col .switch-area {
+        display: none;
+    }
+</style>
+
+<input type="button" id="tocButton" value="Hide"  title="Show or Hide Table of Contents">
+
+<script>
+    yiliaConfig.toc = ["Hide", "Show", !!"false"];
+</script>
+
+
+
+    
+<div class="share">
+    
+        <div class="bdsharebuttonbox">
+            <a href="#" class="fa fa-twitter bds_twi" data-cmd="twi" title="分享到推特"></a>
+            <a href="#" class="fa fa-weibo bds_tsina" data-cmd="tsina" title="分享到新浪微博"></a>
+            <a href="#" class="fa fa-qq bds_sqq" data-cmd="sqq" title="分享给 QQ 好友"></a>
+            <a href="#" class="fa fa-files-o bds_copy" data-cmd="copy" title="复制网址"></a>
+            <a href="#" class="fa fa fa-envelope-o bds_mail" data-cmd="mail" title="通过邮件分享"></a>
+            <a href="#" class="fa fa-weixin bds_weixin" data-cmd="weixin" title="生成文章二维码"></a>
+            <a href="#" class="fa fa-share-alt bds_more" data-cmd="more"></i></a>
+        </div>
+        <script>
+            window._bd_share_config={
+                "common":{"bdSnsKey":{},"bdText":"k8s ci & cd pipeline　| J.W　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+        </script>
+    
+
+    
+</div>
+
+
+
+
+
+
+
+    
+      <div class="duoshuo" id="comments">
+    <div id="comment-box" ></div>
+    <div class="ds-thread" id="ds-thread" data-thread-key="2020/02/19/k8s-cicd-pipeline-setup/" data-title="k8s ci &amp; cd pipeline" data-url="https://ajasonwang.github.io/2020/02/19/k8s-cicd-pipeline-setup/"></div>
+    <script>
+        var duoshuoQuery = {short_name:"mogging"};
+        var loadComment = function(){
+            var d = document, s = d.createElement('script');
+            s.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+            s.async = true; s.charset = 'UTF-8';
+            (d.head || d.body).appendChild(s);
+        }
+
+        
+    </script>
+    
+    <script> loadComment(); </script>
+
+</div>
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/" title="Back to Homepage"><i class="fa fa-home"></i></a>
+        
+
+        <a title="Mini Archives"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/" title="Next: Jenkins安装配置">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/02/19/k8s-cicd-pipeline-setup/">k8s ci & cd pipeline</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/">Jenkins安装配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/">阿里云服务器被发现挖矿程序后的处理</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/26/nfs-permission/">nfs权限问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/30/delete-long-path-in-windows/">Windows中删除路径太长目录及文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/07/01/secure-ssh-trust-connection/">增加ssh无密码信任连接的安全性（转）</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/06/03/windows-malformation-folder/">Windows 畸形文件夹</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/05/19/exclude-file-when-using-rm/">在 Bash 中删除除某些文件外的所有文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/04/29/linux-ulimit-nproc-set/">正确配置Linux系统ulimit/nproc值的方法（转）</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/23/pip-install-unable-to-find-vcvarsallbat/">pip install 的报错 Unable to find vcvarsall.bat</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/13/ubuntu-hang-on-boot/">双系统进Ubuntu开机卡死</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/10/13/drop-meaningless-social-activities/">放弃那些无用的社交</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/21/to-be-a-smart-information-consumer/">做个聪明的信息消费者</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/19/all-about-password/">《密码疲劳》读后感</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/07/linux-set--e/">linux中的set命令: set -e 与 set -o pipefail </a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/04/shrink-virtualbox-disk-file/">virtualbox压缩vdi硬盘</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/26/github-gitcafe-sshkey/">Github gitee 在同一台机器设置SSH密钥</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/22/security-tools/">安全上网工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/01/curl-http_code/">curl http_code 状态码及意义</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/24/love-page/">love page</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/16/linux-find-xargs-print0/">linux find xargs print0</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/29/git-reset/">git 放弃本地修改</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/zhixiangshu/">致橡树</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/April-twilight/">四月的黄昏</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/10/god-father-s-outlook-on-life/">《教父》里的人生观</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/gitcafe-qianyi/">GitCafe 迁移</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/access-log-for-this-blog/">今天的网站访问记录</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/08/googleadsense/">今天尝试了Google Adsense</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/07/what-is-the-difference-of-two-skype-in-google-play/">Google Play 中有两个 Skype</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/06/systematization-lead-to-result/">制度决定结果</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/05/a-splendid-bug-finding-story/">我听到过的最精彩的一个软件纠错故事</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/03/what-is-hr-thinking-about-job-hunters-over-30/">HR 怎么看待三十岁以上的基础岗位求职者</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/01/some-words-written-at-the-begining-of-december-2014/">写在2014年最后一个月的月初</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/28/do-not-say-everything-I-did-is-for-you/">别再讲“我是为你好”的混账话</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/18/memorial-day/">今天是个值得纪念的日子</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/freebsd-100/">freebsd 10.0 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/linux-ubuntu-1404/">linux ubuntu 14.04 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/07/windows-import-cer-file-command/">windows 安装证书命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-webdeploy/">iis webdeploy</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-7-appcmd/">iis 7 appcmd</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-vim-save-file-none-root/">linux vim 非root用户不能保存文件的技巧</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-ulimit/">mysql ulimit 案例（转载）</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-backup-with-mysqldump/">mysql backup with mysqldump</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-ssh-login-slow/">linux ssh 登陆慢</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/powershell-clean-disk-space/">powershell 清理磁盘空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/linux-rm-rf-recovery/">rm rf 误删恢复</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/virtualbox-os-x-mavericks-screen-resolution/">VirtualBox OS X Mavericks 虚拟机分辨率调整</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/08/13/hello-my-2014-august/">Hello World, 于2014年八月!</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2014-2020 J.W
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="A fast, simple &amp; powerful blog framework">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="Another simple and elegant theme for Hexo  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-44254436-3', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="Back to Top"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="Comments"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="Go to Bottom"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
