@@ -15,18 +15,20 @@
 
 
 
-<meta name="description" content="开始：晚上十点被报警惊醒（幸好还没睡觉），报警内容:xxxxxxxxxxxxx“MySQL IS Down”；MySQL 没有任何预兆的就死啦。 勘察现场：-&amp;gt;查看下MySQL进程—存在 -&amp;gt;系统load，cpu，io 均很正常 -&amp;gt;（个人觉得zabbix 不会误报） -&amp;gt;登录MySQL提示：ERROR 1135 (HY000): Can’t create a new t">
-<meta name="keywords" content="MySQL">
+<meta name="description" content="在kubernetes集群建立CICD流水线备忘">
+<meta name="keywords" content="Kubernetes">
 <meta property="og:type" content="article">
-<meta property="og:title" content="mysql ulimit 案例（转载）">
-<meta property="og:url" content="https://ajasonwang.github.io/2014/11/04/mysql-ulimit/index.html">
+<meta property="og:title" content="k8s ci &amp; cd pipeline">
+<meta property="og:url" content="https://ajasonwang.github.io/2020/05/23/k8s-cicd-pipeline-setup/index.html">
 <meta property="og:site_name" content="J.W">
-<meta property="og:description" content="开始：晚上十点被报警惊醒（幸好还没睡觉），报警内容:xxxxxxxxxxxxx“MySQL IS Down”；MySQL 没有任何预兆的就死啦。 勘察现场：-&amp;gt;查看下MySQL进程—存在 -&amp;gt;系统load，cpu，io 均很正常 -&amp;gt;（个人觉得zabbix 不会误报） -&amp;gt;登录MySQL提示：ERROR 1135 (HY000): Can’t create a new t">
+<meta property="og:description" content="在kubernetes集群建立CICD流水线备忘">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-02-29T11:33:51.480Z">
+<meta property="og:image" content="https://ajasonwang.github.io/album/other/cicdpipeline.jpg">
+<meta property="og:updated_time" content="2020-05-23T03:15:54.033Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="mysql ulimit 案例（转载）">
-<meta name="twitter:description" content="开始：晚上十点被报警惊醒（幸好还没睡觉），报警内容:xxxxxxxxxxxxx“MySQL IS Down”；MySQL 没有任何预兆的就死啦。 勘察现场：-&amp;gt;查看下MySQL进程—存在 -&amp;gt;系统load，cpu，io 均很正常 -&amp;gt;（个人觉得zabbix 不会误报） -&amp;gt;登录MySQL提示：ERROR 1135 (HY000): Can’t create a new t">
+<meta name="twitter:title" content="k8s ci &amp; cd pipeline">
+<meta name="twitter:description" content="在kubernetes集群建立CICD流水线备忘">
+<meta name="twitter:image" content="https://ajasonwang.github.io/album/other/cicdpipeline.jpg">
 
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
@@ -58,7 +60,7 @@
 <link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
 
 
-<title>mysql ulimit 案例（转载） | J.W</title>
+<title>k8s ci &amp; cd pipeline | J.W</title>
 
 <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
 <script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
@@ -254,11 +256,11 @@
     </div>
     <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
 </nav>
-      <div class="body-wrap"><article id="post-mysql-ulimit" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap"><article id="post-k8s-cicd-pipeline-setup" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2014/11/04/mysql-ulimit/" class="article-date">
-      <time datetime="2014-11-04T10:18:18.000Z" itemprop="datePublished">2014-11-04</time>
+      <a href="/2020/05/23/k8s-cicd-pipeline-setup/" class="article-date">
+      <time datetime="2020-05-23T03:01:59.635Z" itemprop="datePublished">2020-05-23</time>
 </a>
     </div>
   
@@ -271,7 +273,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      mysql ulimit 案例（转载）
+      k8s ci &amp; cd pipeline
     </h1>
   
 
@@ -286,7 +288,7 @@
 
         
     <div class="article-tag tagcloud">
-        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/">MySQL</a></li></ul>
+        <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kubernetes/">Kubernetes</a></li></ul>
     </div>
 
         <div class="clearfix"></div>
@@ -297,43 +299,182 @@
       
           
         <hr>
-<p>开始：晚上十点被报警惊醒（幸好还没睡觉），报警内容:xxxxxxxxxxxxx“MySQL IS Down”；MySQL 没有任何预兆的就死啦。</p>
-<p>勘察现场：-&gt;查看下MySQL进程—存在</p>
-<p>-&gt;系统load，cpu，io 均很正常</p>
-<p>-&gt;（个人觉得zabbix 不会误报）</p>
-<p>-&gt;登录MySQL提示：ERROR 1135 (HY000): Can’t create a new thread (errno 11)</p>
-<p>-&gt;perror 11 显示：</p>
-<p>OS error code 11: Resource temporarily unavailable</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p><a href="/album/other/cicdpipeline.jpg"><img src="/album/other/cicdpipeline.jpg" alt></a></p>
 <a id="more"></a>
 
-<p>-&gt;第一反应是 文件句柄不够用，查看文件句柄使用情况：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsof -n | awk &apos;&#123;print $2&#125;&apos; | sort | uniq -c | grep &apos;pid of mysql&apos;</span><br></pre></td></tr></table></figure>
+<h1 id="Setup-nexus-private-registry"><a href="#Setup-nexus-private-registry" class="headerlink" title="Setup nexus private registry"></a>Setup nexus private registry</h1><h4 id="generate-ssl-certificate-and-restart-nexus"><a href="#generate-ssl-certificate-and-restart-nexus" class="headerlink" title="generate ssl certificate and restart nexus"></a>generate ssl certificate and restart nexus</h4><pre><code>export NEXUS_HOST=your_hostname
+export NEXUS_DOMAIN=your_domain_name.com
+export NEXUS_IP_ADDRESS=192.168.10.10
+export NEXUS_SSL_PORT=7777
 
-<p>一切正常；</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ulimit -a</span><br></pre></td></tr></table></figure>
+keytool -genkeypair -keystore keystore.jks -storepass keystorePass -keypass keystorePass -alias jetty -keyalg RSA -keysize 2048 -validity 5000 -dname &quot;CN=$NEXUS_DOMAIN, OU=Example, O=Sonatype, L=Unspecified, ST=Unspecified, C=US&quot; -ext &quot;SAN=DNS:$NEXUS_DOMAIN,IP:$NEXUS_IP_ADDRESS&quot; -ext &quot;BC=ca:true&quot;
 
-<p>显示所有的结果：</p>
-<p>max process 为 1024；–基本可以肯定问题就出在这里，某个程序发起了过多的连接，现在可以考虑坐下限制（简单粗暴的方法是 设置ulimit -u 102400,然后再重启MySQL–）：</p>
-<p>—-&gt; 查看3306 连接数：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano | grep ip:3306 | awk &apos;&#123;print $5&#125;&apos; | awk -F &apos;:&apos; &apos;&#123;print $1&#125;&apos; | sort | uniq -c</span><br></pre></td></tr></table></figure>
+openssl req -newkey rsa:4096 -nodes -sha256 -keyout ${nexus_home}/etc/ssl/nexus.key -x509 -days 3650 -out ${nexus_home}/etc/ssl/nexus.cert
 
-<p>可以考虑使用iptables 限制最大连接数来处理：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">iptables -A INPUT -p tcp -m tcp --dport 3306 --tcp-flags FIN,SYN,RST,ACK SYN -m connlimit --connlimit-above 200 --connlimit-mask 32 -j REJECT --reject-with tcp-reset</span><br></pre></td></tr></table></figure>
+ls ${nexus_home}/etc/ssl/
+keystore.jks  nexus.cert  nexus.key</code></pre><h4 id="etc-nexus-default-properties"><a href="#etc-nexus-default-properties" class="headerlink" title="etc/nexus-default.properties"></a>etc/nexus-default.properties</h4><pre><code>application-port-ssl=8444
+nexus-args=${jetty.etc}/jetty.xml,${jetty.etc}/jetty-http.xml,${jetty.etc}/jetty-https.xml,${jetty.etc}/jetty-requestlog.xml</code></pre><h4 id="etc-nexus-properties"><a href="#etc-nexus-properties" class="headerlink" title="etc/nexus.properties"></a>etc/nexus.properties</h4><pre><code>application-port-ssl=7777</code></pre><h4 id="restart-nexus-service"><a href="#restart-nexus-service" class="headerlink" title="restart nexus service"></a>restart nexus service</h4><pre><code>${nexus_home}/bin/nexus restart</code></pre><h4 id="create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><a href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI" class="headerlink" title="create nexus repository and set Repository Connectors in nexus UI"></a>create nexus repository and set Repository Connectors in nexus UI</h4><pre><code>#hosted type repository for docker push
+HTTPS: 7777
 
-<p>故障反思：</p>
-<p>其中漏掉的一点是：查看系统限制:/etc/security/limits.conf 中</p>
-<p>max process = 65535</p>
-<p>但ulimit -a 的时候显示的是 1024</p>
-<p>su mysql bash -c  “ulimit -a”</p>
-<p>不科学的：</p>
-<p>后经过google发现在centos 6.x中，添加了一个新的文件：/etc/security/limits.d/90-nproc.conf ，只有 noproc是已这个文件为准；</p>
-<p>总结为：在centos5里面，只要在/etc/security/limits.conf 设置好久可以啦，在Centos6里面除了上面提到的limits.conf 配置文件，还要设置好/etc/security/limits.d/90-nproc.conf</p>
-<p>方法二：找到一个可以不重启MySQL就可以在线修改noproc的方式！</p>
-<p>从Linux 2.6.32开始可以使用</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo -n &quot;Max processes=204800:204800&quot; &gt; /proc/`pidof mysqld`/limits</span><br></pre></td></tr></table></figure>
+#group type repository for docker pull
+HTTPS: 8888</code></pre><h4 id="setup-ssl-trust-in-docker-client-node-not-always-necessary"><a href="#setup-ssl-trust-in-docker-client-node-not-always-necessary" class="headerlink" title="setup ssl trust in docker client node(not always necessary)"></a>setup ssl trust in docker client node(not always necessary)</h4><pre><code>#remove old cert
+cd /etc/pki/ca-trust/source/anchors
+rm –f your_domain_name.crt
 
-<p>来动态修改进程的系统资源limits信息，不用再因为修改这个而去重启实例，亲测可用!</p>
+#client trust
+export DOMAIN_NAME=your_domain_name
+export TCP_PORT=7777
+openssl s_client -connect $DOMAIN_NAME:$TCP_PORT -showcerts &lt;/dev/null 2&gt;/dev/null | openssl x509 -outform PEM | tee /etc/pki/ca-trust/source/anchors/$DOMAIN_NAME.crt
 
+update-ca-trust</code></pre><h4 id="configure-etc-docker-daemon-json-and-restart-docker-service"><a href="#configure-etc-docker-daemon-json-and-restart-docker-service" class="headerlink" title="configure /etc/docker/daemon.json and restart docker service"></a>configure /etc/docker/daemon.json and restart docker service</h4><pre><code>{
+    &quot;insecure-registries&quot; : [&quot;your_domain_name:7777&quot;,&quot;your_domain_name:8888&quot;]
+}</code></pre><h4 id="restart-docker-service-and-login"><a href="#restart-docker-service-and-login" class="headerlink" title="restart docker service and login"></a>restart docker service and login</h4><pre><code>/bin/systemctl restart docker.service
+
+#test docker login
+docker login your_domain_name:7777
+docker login your_domain_name:8888</code></pre><h1 id="Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><a href="#Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm" class="headerlink" title="Create k8s ha cluster with ansible-galaxy scrips using kubeadm"></a>Create k8s ha cluster with ansible-galaxy scrips using kubeadm</h1><p>ansible inventory example</p>
+<pre><code>master1   ansible_host=192.168.10.101
+master2   ansible_host=192.168.10.102
+master3   ansible_host=192.168.10.103
+worker1   ansible_host=192.168.10.104
+worker2   ansible_host=192.168.10.105
+
+[center]
+worker2
+
+[k8schaos]
+master1
+
+[k8smaster]
+master2
+master3
+
+[k8sworker]
+worker1
+worker2</code></pre><p>install haproxy in center node, configure 3 node master as backend server</p>
+<pre><code>haproxy_conf: |
+    listen k8smaster
+      bind *:6443
+      option tcplog
+      mode tcp
+      balance roundrobin
+      option tcp-check
+      server master1 192.168.10.101:6443 check fall 3 rise 2
+      server master2 192.168.10.102:6443 check fall 3 rise 2
+      server master3 192.168.10.103:6443 check fall 3 rise 2</code></pre><p>prepare k8s images, push to private registry and load images to nodes</p>
+<p>install first k8schaos node with kubeadm</p>
+<pre><code>kubeadm init --config /tmp/kubeadm-config.yml --upload-certs --v=5</code></pre><p>install two extra k8smaster node and join to cluster<br>install k8sworker node</p>
+<h1 id="Helm-install-jenkins-service-in-k8s"><a href="#Helm-install-jenkins-service-in-k8s" class="headerlink" title="Helm install jenkins service in k8s"></a>Helm install jenkins service in k8s</h1><p>prepare images and helm charts<br>load docker images to nodes first<br>install helm and tiller</p>
+<pre><code>kubectl apply -f rbactiller.yml
+helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --stable-repo-url https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts --service-account=tiller</code></pre><p>install nfs-client-provisioner</p>
+<pre><code>helm install --name ndp --values values.yaml --namespace ndp ./nfs-client-provisioner</code></pre><p>exec helm install for jenkins</p>
+<pre><code>helm install --name jenkins --values values.yaml --namespace jenkins ./1.9.2/jenkins</code></pre><p>install jenkins plugins and adjust settings</p>
+<p>update timezone and security settings:</p>
+<p>1, System.setProperty(‘org.apache.commons.jelly.tags.fmt.timeZone’, ‘Asia/Shanghai’)<br>2, Configure Global Security -&gt; Jenkins’ own user database -&gt; Project-based Matrix Authorization Strategy</p>
+<p>update slave settings:（Docker in Docker）<br>Host Path Volume:<br>   /usr/bin/docker<br>   /var/run/docker.sock</p>
+<p>update default PersistentVolume recycle policy with</p>
+<pre><code>kubectl patch pv $(kubectl get pv,pvc -n jenkins | grep -v NAME | grep jenkins/jenkins | awk &apos;{print $1}&apos; | cut -d&apos;/&apos; -f2) -p &apos;{&quot;spec&quot;:{&quot;persistentVolumeReclaimPolicy&quot;:&quot;Retain&quot;}}&apos;</code></pre><h1 id="Create-ci-cd-pipeline-sample-code-in-k8s-non-docker"><a href="#Create-ci-cd-pipeline-sample-code-in-k8s-non-docker" class="headerlink" title="Create ci cd pipeline sample code in k8s (non-docker)"></a>Create ci cd pipeline sample code in k8s (non-docker)</h1><pre><code>pipeline {
+    agent { label &quot;jenkins-jenkins-slave&quot; } // jenkins slave with maven sonar-scanner tools
+    ...
+    options {
+        buildDiscarder(logRotator(numToKeepStr: &apos;5&apos;))
+        preserveStashes()
+        { skipDefaultCheckout() }
+    }
+
+    stages {
+        stage(&quot;Code Checkout&quot;) {
+            steps { ... }
+        }
+
+        stage(&apos;Build&apos;) {
+            steps {
+                script{
+                    try {
+                        script {
+                            try { ... } finally { }
+                        }
+                    } catch(error) {
+                        echo &quot;First build failed, let&apos;s retry if accepted&quot;
+                        retry(2) { // same code as above }
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Assemble &amp; Test&apos;) { ... }
+
+        stage(&apos;Scan &amp; Upload&apos;) {
+            parallel {
+                stage(&apos;Archive Artifacts&apos;) {
+                    steps {
+                        archiveArtifacts &quot;project_name-assembly-${PKG_VERSION}-SNAPSHOT.zip&quot;
+                    }
+                }
+                stage(&quot;Upload Artifacts to Nexus&quot;) {
+                 steps {
+                     nexusArtifactUploader ...
+                 }
+                }
+                stage(&quot;SonarQube Scan&quot;) {
+                    steps {
+                        script {
+                            if (env.ENABLE_SONAR == &apos;Y&apos;) {
+                                withSonarQubeEnv(&apos;dev_sonarqube&apos;) { // defined in jenkins global setting
+                                    sh &apos;&apos;&apos; ... &apos;&apos;&apos;
+                                }
+                                sleep(120)
+                                timeout(time: 1, unit: &apos;MINUTES&apos;) {
+                                    def qg = waitForQualityGate()
+                                    if (qg.status != &apos;SUCCESS&apos;) {
+                                        echo &quot;Pipeline aborted due to quality gate failure: ${qg.status}&quot;
+                                        // error &quot;Pipeline aborted due to quality gate failure: ${qg.status}&quot;
+                                    }
+                                }
+                            } else { }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Deploy DEV&apos;) {
+            agent { label &quot;jenkins-slave-deploy&quot; } // slave with deploy tools installed, deploy dev by default
+            steps {
+                script { ... }
+            }
+        }
+
+        stage(&apos;Deploy QA&apos;) {
+            agent { label &quot;jenkins-slave-deploy&quot; }
+            when {
+                environment name: &apos;DEPLOY_QA&apos;, value: &apos;Y&apos;
+            }
+            steps {
+                script { // refer dev deploy script }
+            }
+        }
+    }
+}</code></pre><h1 id="Create-ci-cd-pipeline-in-k8s-build-docker-image-and-push-to-private-registry"><a href="#Create-ci-cd-pipeline-in-k8s-build-docker-image-and-push-to-private-registry" class="headerlink" title="Create ci cd pipeline in k8s (build docker image and push to private registry)"></a>Create ci cd pipeline in k8s (build docker image and push to private registry)</h1><pre><code>stage(&quot;Build Docker Image&quot;) {
+    steps {
+        script {
+            def app
+
+            stage(&apos;Build image&apos;) {
+                withDockerRegistry(credentialsId: &quot;${IMAGE_NEXUS_CREDENTIAL_ID}&quot;, url: &quot;http://${REPO}/v1&quot;) {
+                    app = docker.build(&quot;${REPO_PUSH}/project_name/app_name-service:${env.DOMAIN}&quot;, &quot;--label project_name/app_name-service --no-cache --pull --force-rm --build-arg REPO=${REPO} --build-arg DOMAIN=${DOMAIN} --build-arg GROUP_ID=${DOMAIN} --build-arg LAUNCHER_VERSION=${LAUNCHER_VERSION} --build-arg PKG_VERSION=${IMAGE_VERSION} --build-arg NEXUS_REPO=${NEXUS_REPO} .&quot;)
+                }
+            }
+
+            stage(&apos;Push image&apos;) {
+                withDockerRegistry(credentialsId: &quot;${IMAGE_NEXUS_CREDENTIAL_ID}&quot;, url: &quot;http://${REPO_PUSH}/v1&quot;) {
+                    app.push(&quot;${env.IMAGE_VERSION}-${env.BUILD_NUMBER}&quot;)
+                    app.push(&quot;${env.IMAGE_VERSION}-latest&quot;)
+                }
+            }
+        }
+    }
+}</code></pre>
       
     </div>
     
@@ -341,13 +482,13 @@
   
     
     <div class="copyright">
-        <p><span>本文标题:</span><a href="/2014/11/04/mysql-ulimit/">mysql ulimit 案例（转载）</a></p>
+        <p><span>本文标题:</span><a href="/2020/05/23/k8s-cicd-pipeline-setup/">k8s ci &amp; cd pipeline</a></p>
         <p><span>文章作者:</span><a href="/" title="回到主页">J.W</a></p>
-        <p><span>发布时间:</span>2014-11-04, 18:18:18</p>
-        <p><span>最后更新:</span>2020-02-29, 19:33:51</p>
+        <p><span>发布时间:</span>2020-05-23, 11:01:59</p>
+        <p><span>最后更新:</span>2020-05-23, 11:15:54</p>
         <p>
-            <span>原始链接:</span><a class="post-url" href="/2014/11/04/mysql-ulimit/" title="mysql ulimit 案例（转载）">https://ajasonwang.github.io/2014/11/04/mysql-ulimit/</a>
-            <span class="copy-path" data-clipboard-text="原文: https://ajasonwang.github.io/2014/11/04/mysql-ulimit/　　作者: J.W" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <span>原始链接:</span><a class="post-url" href="/2020/05/23/k8s-cicd-pipeline-setup/" title="k8s ci &amp; cd pipeline">https://ajasonwang.github.io/2020/05/23/k8s-cicd-pipeline-setup/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://ajasonwang.github.io/2020/05/23/k8s-cicd-pipeline-setup/　　作者: J.W" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
             <script> var clipboard = new Clipboard('.copy-path'); </script>
         </p>
         <p>
@@ -359,16 +500,10 @@
 
     <nav id="article-nav">
         
-            <div id="article-nav-newer" class="article-nav-title">
-                <a href="/2014/11/04/linux-vim-save-file-none-root/">
-                    linux vim 非root用户不能保存文件的技巧
-                </a>
-            </div>
-        
         
             <div id="article-nav-older" class="article-nav-title">
-                <a href="/2014/11/04/mysql-backup-with-mysqldump/">
-                    mysql backup with mysqldump
+                <a href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/">
+                    Jenkins安装配置
                 </a>
             </div>
         
@@ -379,7 +514,7 @@
 
     <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录</strong>
-    
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Overview"><span class="toc-number">1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Setup-nexus-private-registry"><span class="toc-number">2.</span> <span class="toc-text">Setup nexus private registry</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#generate-ssl-certificate-and-restart-nexus"><span class="toc-number">2.0.0.1.</span> <span class="toc-text">generate ssl certificate and restart nexus</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#etc-nexus-default-properties"><span class="toc-number">2.0.0.2.</span> <span class="toc-text">etc/nexus-default.properties</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#etc-nexus-properties"><span class="toc-number">2.0.0.3.</span> <span class="toc-text">etc/nexus.properties</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#restart-nexus-service"><span class="toc-number">2.0.0.4.</span> <span class="toc-text">restart nexus service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><span class="toc-number">2.0.0.5.</span> <span class="toc-text">create nexus repository and set Repository Connectors in nexus UI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setup-ssl-trust-in-docker-client-node-not-always-necessary"><span class="toc-number">2.0.0.6.</span> <span class="toc-text">setup ssl trust in docker client node(not always necessary)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#configure-etc-docker-daemon-json-and-restart-docker-service"><span class="toc-number">2.0.0.7.</span> <span class="toc-text">configure /etc/docker/daemon.json and restart docker service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#restart-docker-service-and-login"><span class="toc-number">2.0.0.8.</span> <span class="toc-text">restart docker service and login</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><span class="toc-number">3.</span> <span class="toc-text">Create k8s ha cluster with ansible-galaxy scrips using kubeadm</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Helm-install-jenkins-service-in-k8s"><span class="toc-number">4.</span> <span class="toc-text">Helm install jenkins service in k8s</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Create-ci-cd-pipeline-sample-code-in-k8s-non-docker"><span class="toc-number">5.</span> <span class="toc-text">Create ci cd pipeline sample code in k8s (non-docker)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Create-ci-cd-pipeline-in-k8s-build-docker-image-and-push-to-private-registry"><span class="toc-number">6.</span> <span class="toc-text">Create ci cd pipeline in k8s (build docker image and push to private registry)</span></a></li></ol>
 </div>
 <style>
     .left-col .switch-btn,
@@ -410,7 +545,7 @@
         </div>
         <script>
             window._bd_share_config={
-                "common":{"bdSnsKey":{},"bdText":"mysql ulimit 案例（转载）　| J.W　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+                "common":{"bdSnsKey":{},"bdText":"k8s ci & cd pipeline　| J.W　","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"24"},"share":{}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
         </script>
     
 
@@ -426,7 +561,7 @@
     
       <div class="duoshuo" id="comments">
     <div id="comment-box" ></div>
-    <div class="ds-thread" id="ds-thread" data-thread-key="2014/11/04/mysql-ulimit/" data-title="mysql ulimit 案例（转载）" data-url="https://ajasonwang.github.io/2014/11/04/mysql-ulimit/"></div>
+    <div class="ds-thread" id="ds-thread" data-thread-key="2020/05/23/k8s-cicd-pipeline-setup/" data-title="k8s ci &amp; cd pipeline" data-url="https://ajasonwang.github.io/2020/05/23/k8s-cicd-pipeline-setup/"></div>
     <script>
         var duoshuoQuery = {short_name:"mogging"};
         var loadComment = function(){
@@ -449,15 +584,13 @@
 
     <div class="scroll" id="post-nav-button">
         
-            <a href="/2014/11/04/linux-vim-save-file-none-root/" title="上一篇: linux vim 非root用户不能保存文件的技巧">
-                <i class="fa fa-angle-left"></i>
-            </a>
+            <a href="/" title="回到主页"><i class="fa fa-home"></i></a>
         
 
         <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
 
         
-            <a href="/2014/11/04/mysql-backup-with-mysqldump/" title="下一篇: mysql backup with mysqldump">
+            <a href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/" title="下一篇: Jenkins安装配置">
                 <i class="fa fa-angle-right"></i>
             </a>
         
