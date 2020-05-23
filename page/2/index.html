@@ -85,6 +85,19 @@
 
 
     <script> yiliaConfig.rootUrl = "\/";</script>
+<script data-ad-client="ca-pub-8697774084185274" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-44254436-4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-44254436-4');
+</script>
+
 
 
 
@@ -93,6 +106,19 @@
 
 </head></html>
 <body>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- wangjia.xyz -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-8697774084185274"
+     data-ad-slot="4914021699"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
   <div id="container">
     <div class="left-col">
     <div class="overlay"></div>
@@ -355,12 +381,11 @@
       
           
               <p>我的一位同事曾经问过我这样一个问题：在 Linux 下，如何 删除目录中除某些文件之外的所有文件？当时，我告诉他可 以通过模式匹配的方法解决。但其实，除此之外，还有其他 的方法，正所谓“条条大路通罗马”。让我们来逐一看看。</p>
-<p>假设要删除 ~/Downloads 目录中除 <em>.iso 和 </em>.zip 外的 所有文件，那么在 bash 中可以按以下方法处理。</p>
+<p>假设要删除 ~/Downloads 目录中除 *.iso 和 *.zip 外的 所有文件，那么在 bash 中可以按以下方法处理。</p>
 <h3 id="模式匹配法"><a href="#模式匹配法" class="headerlink" title="模式匹配法"></a>模式匹配法</h3><pre><code>shopt -s extglob # 确认开启 extglob 选项
 cd ~/Downloads
 rm -v !(*.iso|*.zip)
-!(pattern list) 的作用是匹配除 pattern list 之外 的文件。
-</code></pre>
+!(pattern list) 的作用是匹配除 pattern list 之外 的文件。</code></pre>
           
       
     </div>

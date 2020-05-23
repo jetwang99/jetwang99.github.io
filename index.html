@@ -85,6 +85,19 @@
 
 
     <script> yiliaConfig.rootUrl = "\/";</script>
+<script data-ad-client="ca-pub-8697774084185274" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-44254436-4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-44254436-4');
+</script>
+
 
 
 
@@ -93,6 +106,19 @@
 
 </head></html>
 <body>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- wangjia.xyz -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-8697774084185274"
+     data-ad-slot="4914021699"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
   <div id="container">
     <div class="left-col">
     <div class="overlay"></div>
@@ -259,8 +285,8 @@
     <article id="post-k8s-cicd-pipeline-setup" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2020/02/29/k8s-cicd-pipeline-setup/" class="article-date">
-      <time datetime="2020-02-29T11:33:51.480Z" itemprop="datePublished">2020-02-29</time>
+      <a href="/2020/03/21/k8s-cicd-pipeline-setup/" class="article-date">
+      <time datetime="2020-03-21T06:36:23.155Z" itemprop="datePublished">2020-03-21</time>
 </a>
     </div>
   
@@ -273,7 +299,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2020/02/29/k8s-cicd-pipeline-setup/">k8s ci &amp; cd pipeline</a>
+      <a class="article-title" href="/2020/03/21/k8s-cicd-pipeline-setup/">k8s ci &amp; cd pipeline</a>
     </h1>
   
 
@@ -303,7 +329,7 @@
 
       
         <p class="article-more-link">
-          <a href="/2020/02/29/k8s-cicd-pipeline-setup/#more">more >></a>
+          <a href="/2020/03/21/k8s-cicd-pipeline-setup/#more">more >></a>
         </p>
       
       <div class="clearfix"></div>
@@ -354,8 +380,7 @@
 SET PASSWORD FOR &apos;root&apos;@&apos;%&apos;=PASSWORD(&apos;Mysql123&apos;);
 grant all privileges on *.* to root@&quot;%&quot; identified by &quot;Mysql123&quot;;
 
-mysqladmin -u root password oldpass &quot;newpass&quot;
-</code></pre>
+mysqladmin -u root password oldpass &quot;newpass&quot;</code></pre>
           
       
     </div>
@@ -557,8 +582,7 @@ mysqladmin -u root password oldpass &quot;newpass&quot;
           
               <p>用node的话，经常搞出这种路径超过Windows限制的情况而导致目录删不掉，网上说下面这个命令可以删除</p>
 <p>在cmd命令行窗口中输入 </p>
-<pre><code>robocopy empty_dir will_delete_dir /purge
-</code></pre><p>empty_dir 新建的空白目录<br>will_delete_dir 要删除的目录<br>注意中间的空格</p>
+<pre><code>robocopy empty_dir will_delete_dir /purge</code></pre><p>empty_dir 新建的空白目录<br>will_delete_dir 要删除的目录<br>注意中间的空格</p>
 <p>自己搞了个powershell脚本，先把路径名字改短然后再删，也很方便</p>
           
       
@@ -628,6 +652,7 @@ mysqladmin -u root password oldpass &quot;newpass&quot;
               <h3 id="一般情况这样玩"><a href="#一般情况这样玩" class="headerlink" title="一般情况这样玩"></a>一般情况这样玩</h3><p>为了方便系统管理或者服务器运维自动化，我们通常要在服务器间做ssh无密码信任连接。</p>
 <p>在服务器端创建密钥</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t dsa</span><br></pre></td></tr></table></figure>
+
 <p>一路回车，在~/.ssh下生成的id_rsa是私钥，id_rsa.pub是公钥。复制公钥到目标服务器，然后就可以无密码登录了：</p>
 <p>自动化拷贝公钥到多台目标机器</p>
           

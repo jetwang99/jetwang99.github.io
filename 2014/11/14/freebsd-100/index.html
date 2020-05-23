@@ -23,7 +23,7 @@
 <meta property="og:site_name" content="J.W">
 <meta property="og:description" content="分区选择手动，磁盘类型选择GPT，分区类型如下： freebsd-boot 64K(大小必须设置成这样) freebsd-swap 4G 其他分区…">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-02-29T11:33:51.480Z">
+<meta property="og:updated_time" content="2019-05-05T07:39:33.626Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="freebsd 10.0 初体验">
 <meta name="twitter:description" content="分区选择手动，磁盘类型选择GPT，分区类型如下： freebsd-boot 64K(大小必须设置成这样) freebsd-swap 4G 其他分区…">
@@ -85,6 +85,19 @@
 
 
     <script> yiliaConfig.rootUrl = "\/";</script>
+<script data-ad-client="ca-pub-8697774084185274" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-44254436-4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-44254436-4');
+</script>
+
 
 
 
@@ -93,6 +106,19 @@
 
 </head></html>
 <body>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- wangjia.xyz -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-8697774084185274"
+     data-ad-slot="4914021699"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
   <div id="container">
     <div class="left-col">
     <div class="overlay"></div>
@@ -302,6 +328,7 @@
 <p>freebsd-swap 4G</p>
 <p>其他分区…</p>
 <a id="more"></a>
+
 <p>系统安装之后：<br>1.首先设置一个比较快的portsnap服务器，如果系统默认的地址你的访问速度也很快，可以不修改</p>
 <p>#vi /etc/portsnap.conf<br>设置SERVERNAME=portsnap.cn.freebsd.org ,你可以设置相对你速度快点的服务器的地址</p>
 <p>2.执行下面命令</p>
@@ -312,29 +339,23 @@
 <h1 id="cd-usr-ports-ports-mgmt-pkg"><a href="#cd-usr-ports-ports-mgmt-pkg" class="headerlink" title="cd /usr/ports/ports-mgmt/pkg"></a>cd /usr/ports/ports-mgmt/pkg</h1><h1 id="make"><a href="#make" class="headerlink" title="make"></a>make</h1><h1 id="make-reinstall"><a href="#make-reinstall" class="headerlink" title="make reinstall"></a>make reinstall</h1><h1 id="pkg2ng"><a href="#pkg2ng" class="headerlink" title="pkg2ng"></a>pkg2ng</h1><p>3.设置最快的ports镜像</p>
 <p>用ports安装软件的时候，如果没有设置相对于你来说最快的ports服务器地址，那就会默认的 <a href="ftp://ftp.freebsd.org/pub/FreeBSD/ports/distfiles/，这个地址对于很多地方来说是很慢的。" target="_blank" rel="noopener">ftp://ftp.freebsd.org/pub/FreeBSD/ports/distfiles/，这个地址对于很多地方来说是很慢的。</a></p>
 <p>修改 /etc/make.conf 加入以下代码</p>
-<p>MASTER_SITE_OVERRIDE=\<br><a href="ftp://ftp.freebsdchina.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}\" target="_blank" rel="noopener">ftp://ftp.freebsdchina.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}\</a><br><a href="ftp://ftp.tw.freebsd.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}" target="_blank" rel="noopener">ftp://ftp.tw.freebsd.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}</a></p>
+<p>MASTER_SITE_OVERRIDE=<br><a href="ftp://ftp.freebsdchina.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}\" target="_blank" rel="noopener">ftp://ftp.freebsdchina.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}\</a><br><a href="ftp://ftp.tw.freebsd.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}" target="_blank" rel="noopener">ftp://ftp.tw.freebsd.org/pub/FreeBSD/ports/distfiles/${DIST_SUBDIR}</a></p>
 <p>如果你有最快的地址，可以加到上面去，下载就会块了</p>
 <p>软件安装<br>这是我最欣赏freebsd的优点之一，软件收集全面，分类明确，安装简便，编译安装方式足够适应系统并优化。<br>举例，比如我要需要安装sudo，值得注意的是，安装前更新下port树不失为一个好习惯。</p>
 <p>查找软件</p>
-<p>#cd /usr/ports</p>
-<p>#make search key=firefox</p>
+<p>#cd /usr/ports<br>#make search key=firefox</p>
 <p>运行下列命令进行安装</p>
-<p>#cd /usr/ports/security/sudo</p>
-<p>#make install clean</p>
+<p>#cd /usr/ports/security/sudo<br>#make install clean</p>
 <p>会弹出选项，按照需求进行选择，然后OK，等待编译完成吧，这个软件就装完了。<br>通过ports安装的软件，其配置文件路径一般在如下位置</p>
 <p>#vi /usr/local/etc/sudoers</p>
 <h2 id="Same-thing-without-a-password"><a href="#Same-thing-without-a-password" class="headerlink" title="Same thing without a password"></a>Same thing without a password</h2><p>%wheel ALL=(ALL) NOPASSWD: ALL</p>
 <p>表示wheel组的成员，不用切换用户，就可以sudo方式执行root权限的命令</p>
 <p>卸载</p>
-<p>#cd /usr/ports/www/firefox</p>
-<p>#make deinstall clean</p>
+<p>#cd /usr/ports/www/firefox<br>#make deinstall clean</p>
 <p>卸载所有安装的ports：</p>
-<p>#cd /var/db/pkg</p>
-<p>#pkg_delete *</p>
-<p>#reboot</p>
+<p>#cd /var/db/pkg<br>#pkg_delete *<br>#reboot</p>
 <p>升级 firefox：</p>
-<p>#cd /usr/ports/www/firefox</p>
-<p>#make deinstall reinstall clean</p>
+<p>#cd /usr/ports/www/firefox<br>#make deinstall reinstall clean</p>
 <p>定制 port</p>
 <p>有时候，你会发现安装某个 port 的时候会有奇怪的事情发生。比如 editors/vim，安装的时候竟然会自动安装 glib1 和 gtk1，而明明自己的系统上已经有了 glib2 和 gtk2。</p>
 <p>这是因为有些 port 有很多不是默认的编译选项。这个时候你需要设定一些环境变量让 port 知道该怎么做。对于 editors/vim，你需要设定 WITH_GTK2 来让 vim 依赖 gtk2 而不是 gtk1。</p>
@@ -379,9 +400,7 @@
 <p>修改/etc/ssh/sshd_config文件，</p>
 <p>Port 2122  # 默认为22，更改后减少别人暴力破解的机会</p>
 <p>AllowUsers user1,user2 #指定能够远程登录的用户,其它用户登录时直接拒绝</p>
-<p>#RSAAuthentication yes</p>
-<p>#PubkeyAuthentication yes</p>
-<p>#AuthorizedKeysFile      .ssh/authorized_keys</p>
+<p>#RSAAuthentication yes<br>#PubkeyAuthentication yes<br>#AuthorizedKeysFile      .ssh/authorized_keys</p>
 <p>备注：<br>密钥认证，默认已经设置好，在用户根目录生成 .ssh/authorized_keys即可。<br>密钥可借助SecureCRT、puttygent等工具协助完成</p>
 <p>查看FreeBSD服务器的一些基础情况和信息</p>
 <p>①查看CPU：</p>
@@ -409,7 +428,7 @@
         <p><span>本文标题:</span><a href="/2014/11/14/freebsd-100/">freebsd 10.0 初体验</a></p>
         <p><span>文章作者:</span><a href="/" title="回到主页">J.W</a></p>
         <p><span>发布时间:</span>2014-11-14, 20:08:08</p>
-        <p><span>最后更新:</span>2020-02-29, 19:33:51</p>
+        <p><span>最后更新:</span>2019-05-05, 15:39:33</p>
         <p>
             <span>原始链接:</span><a class="post-url" href="/2014/11/14/freebsd-100/" title="freebsd 10.0 初体验">https://ajasonwang.github.io/2014/11/14/freebsd-100/</a>
             <span class="copy-path" data-clipboard-text="原文: https://ajasonwang.github.io/2014/11/14/freebsd-100/　　作者: J.W" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
@@ -528,7 +547,7 @@
         
     </div>
 
-    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/02/29/k8s-cicd-pipeline-setup/">k8s ci & cd pipeline</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/">Jenkins安装配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/">阿里云服务器被发现挖矿程序后的处理</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/26/nfs-permission/">nfs权限问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/30/delete-long-path-in-windows/">Windows中删除路径太长目录及文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/07/01/secure-ssh-trust-connection/">增加ssh无密码信任连接的安全性</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/06/03/windows-malformation-folder/">Windows 畸形文件夹</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/05/19/exclude-file-when-using-rm/">在 Bash 中删除除某些文件外的所有文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/04/29/linux-ulimit-nproc-set/">正确配置Linux系统ulimit/nproc值的方法（转）</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/23/pip-install-unable-to-find-vcvarsallbat/">pip install 的报错 Unable to find vcvarsall.bat</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/13/ubuntu-hang-on-boot/">双系统进Ubuntu开机卡死</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/10/13/drop-meaningless-social-activities/">放弃那些无用的社交</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/21/to-be-a-smart-information-consumer/">做个聪明的信息消费者</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/19/all-about-password/">《密码疲劳》读后感</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/07/linux-set--e/">linux中的set命令: set -e 与 set -o pipefail </a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/04/shrink-virtualbox-disk-file/">virtualbox压缩vdi硬盘</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/26/github-gitcafe-sshkey/">Github gitee 在同一台机器设置SSH密钥</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/22/security-tools/">安全上网工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/01/curl-http_code/">curl http_code 状态码及意义</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/24/love-page/">love page</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/16/linux-find-xargs-print0/">linux find xargs print0</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/29/git-reset/">git 放弃本地修改</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/zhixiangshu/">致橡树</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/April-twilight/">四月的黄昏</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/10/god-father-s-outlook-on-life/">《教父》里的人生观</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/gitcafe-qianyi/">GitCafe 迁移</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/access-log-for-this-blog/">今天的网站访问记录</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/08/googleadsense/">今天尝试了Google Adsense</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/07/what-is-the-difference-of-two-skype-in-google-play/">Google Play 中有两个 Skype</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/06/systematization-lead-to-result/">制度决定结果</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/05/a-splendid-bug-finding-story/">我听到过的最精彩的一个软件纠错故事</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/03/what-is-hr-thinking-about-job-hunters-over-30/">HR 怎么看待三十岁以上的基础岗位求职者</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/01/some-words-written-at-the-begining-of-december-2014/">写在2014年最后一个月的月初</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/28/do-not-say-everything-I-did-is-for-you/">别再讲“我是为你好”的混账话</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/18/memorial-day/">今天是个值得纪念的日子</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/freebsd-100/">freebsd 10.0 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/linux-ubuntu-1404/">linux ubuntu 14.04 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/07/windows-import-cer-file-command/">windows 安装证书命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-webdeploy/">iis webdeploy</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-7-appcmd/">iis 7 appcmd</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-vim-save-file-none-root/">linux vim 非root用户不能保存文件的技巧</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-ulimit/">mysql ulimit 案例（转载）</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-backup-with-mysqldump/">mysql backup with mysqldump</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-ssh-login-slow/">linux ssh 登陆慢</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/powershell-clean-disk-space/">powershell 清理磁盘空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/linux-rm-rf-recovery/">rm rf 误删恢复</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/virtualbox-os-x-mavericks-screen-resolution/">VirtualBox OS X Mavericks 虚拟机分辨率调整</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/08/13/hello-my-2014-august/">Hello World, 于2014年八月!</a></li></ul>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/03/21/k8s-cicd-pipeline-setup/">k8s ci & cd pipeline</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/">Jenkins安装配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/">阿里云服务器被发现挖矿程序后的处理</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/26/nfs-permission/">nfs权限问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/30/delete-long-path-in-windows/">Windows中删除路径太长目录及文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/07/01/secure-ssh-trust-connection/">增加ssh无密码信任连接的安全性</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/06/03/windows-malformation-folder/">Windows 畸形文件夹</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/05/19/exclude-file-when-using-rm/">在 Bash 中删除除某些文件外的所有文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/04/29/linux-ulimit-nproc-set/">正确配置Linux系统ulimit/nproc值的方法（转）</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/23/pip-install-unable-to-find-vcvarsallbat/">pip install 的报错 Unable to find vcvarsall.bat</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/13/ubuntu-hang-on-boot/">双系统进Ubuntu开机卡死</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/10/13/drop-meaningless-social-activities/">放弃那些无用的社交</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/21/to-be-a-smart-information-consumer/">做个聪明的信息消费者</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/19/all-about-password/">《密码疲劳》读后感</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/07/linux-set--e/">linux中的set命令: set -e 与 set -o pipefail </a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/04/shrink-virtualbox-disk-file/">virtualbox压缩vdi硬盘</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/26/github-gitcafe-sshkey/">Github gitee 在同一台机器设置SSH密钥</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/22/security-tools/">安全上网工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/01/curl-http_code/">curl http_code 状态码及意义</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/24/love-page/">love page</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/16/linux-find-xargs-print0/">linux find xargs print0</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/29/git-reset/">git 放弃本地修改</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/zhixiangshu/">致橡树</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/April-twilight/">四月的黄昏</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/10/god-father-s-outlook-on-life/">《教父》里的人生观</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/gitcafe-qianyi/">GitCafe 迁移</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/access-log-for-this-blog/">今天的网站访问记录</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/08/googleadsense/">今天尝试了Google Adsense</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/07/what-is-the-difference-of-two-skype-in-google-play/">Google Play 中有两个 Skype</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/06/systematization-lead-to-result/">制度决定结果</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/05/a-splendid-bug-finding-story/">我听到过的最精彩的一个软件纠错故事</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/03/what-is-hr-thinking-about-job-hunters-over-30/">HR 怎么看待三十岁以上的基础岗位求职者</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/01/some-words-written-at-the-begining-of-december-2014/">写在2014年最后一个月的月初</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/28/do-not-say-everything-I-did-is-for-you/">别再讲“我是为你好”的混账话</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/18/memorial-day/">今天是个值得纪念的日子</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/freebsd-100/">freebsd 10.0 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/linux-ubuntu-1404/">linux ubuntu 14.04 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/07/windows-import-cer-file-command/">windows 安装证书命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-webdeploy/">iis webdeploy</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-7-appcmd/">iis 7 appcmd</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-vim-save-file-none-root/">linux vim 非root用户不能保存文件的技巧</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-ulimit/">mysql ulimit 案例（转载）</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-backup-with-mysqldump/">mysql backup with mysqldump</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-ssh-login-slow/">linux ssh 登陆慢</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/powershell-clean-disk-space/">powershell 清理磁盘空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/linux-rm-rf-recovery/">rm rf 误删恢复</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/virtualbox-os-x-mavericks-screen-resolution/">VirtualBox OS X Mavericks 虚拟机分辨率调整</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/08/13/hello-my-2014-august/">Hello World, 于2014年八月!</a></li></ul>
 
 
 

@@ -19,12 +19,12 @@
 <meta name="keywords" content="Kubernetes">
 <meta property="og:type" content="article">
 <meta property="og:title" content="k8s ci &amp; cd pipeline">
-<meta property="og:url" content="https://ajasonwang.github.io/2020/02/29/k8s-cicd-pipeline-setup/index.html">
+<meta property="og:url" content="https://ajasonwang.github.io/2020/03/21/k8s-cicd-pipeline-setup/index.html">
 <meta property="og:site_name" content="J.W">
 <meta property="og:description" content="在kubernetes集群建立CICD流水线备忘">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://ajasonwang.github.io/album/other/cicdpipeline.jpg">
-<meta property="og:updated_time" content="2020-02-29T12:21:00.264Z">
+<meta property="og:updated_time" content="2020-03-21T07:11:03.295Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="k8s ci &amp; cd pipeline">
 <meta name="twitter:description" content="在kubernetes集群建立CICD流水线备忘">
@@ -87,6 +87,19 @@
 
 
     <script> yiliaConfig.rootUrl = "\/";</script>
+<script data-ad-client="ca-pub-8697774084185274" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-44254436-4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-44254436-4');
+</script>
+
 
 
 
@@ -95,6 +108,19 @@
 
 </head></html>
 <body>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- wangjia.xyz -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-8697774084185274"
+     data-ad-slot="4914021699"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
   <div id="container">
     <div class="left-col">
     <div class="overlay"></div>
@@ -259,8 +285,8 @@
       <div class="body-wrap"><article id="post-k8s-cicd-pipeline-setup" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2020/02/29/k8s-cicd-pipeline-setup/" class="article-date">
-      <time datetime="2020-02-29T11:33:51.480Z" itemprop="datePublished">2020-02-29</time>
+      <a href="/2020/03/21/k8s-cicd-pipeline-setup/" class="article-date">
+      <time datetime="2020-03-21T06:36:23.155Z" itemprop="datePublished">2020-03-21</time>
 </a>
     </div>
   
@@ -301,11 +327,9 @@
         <hr>
 <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p><a href="/album/other/cicdpipeline.jpg"><img src="/album/other/cicdpipeline.jpg" alt></a></p>
 <a id="more"></a>
-<h1 id="Setup-nexus-private-registry"><a href="#Setup-nexus-private-registry" class="headerlink" title="Setup nexus private registry"></a>Setup nexus private registry</h1><h4 id="generate-ssl-certificate-and-restart-nexus"><a href="#generate-ssl-certificate-and-restart-nexus" class="headerlink" title="generate ssl certificate and restart nexus"></a>generate ssl certificate and restart nexus</h4><pre><code>mkdir -p ${nexus_home}/etc/ssl
-cd ${nexus_home}/etc/ssl
 
-export NEXUS_HOST=
-export NEXUS_DOMAIN=
+<h1 id="Setup-nexus-private-registry"><a href="#Setup-nexus-private-registry" class="headerlink" title="Setup nexus private registry"></a>Setup nexus private registry</h1><h4 id="generate-ssl-certificate-and-restart-nexus"><a href="#generate-ssl-certificate-and-restart-nexus" class="headerlink" title="generate ssl certificate and restart nexus"></a>generate ssl certificate and restart nexus</h4><pre><code>export NEXUS_HOST=your_hostname
+export NEXUS_DOMAIN=your_domain_name.com
 export NEXUS_IP_ADDRESS=192.168.5.12
 export NEXUS_SSL_PORT=18444
 
@@ -314,48 +338,27 @@ keytool -genkeypair -keystore keystore.jks -storepass 5St00g3s -keypass 5St00g3s
 openssl req -newkey rsa:4096 -nodes -sha256 -keyout ${nexus_home}/etc/ssl/nexus.key -x509 -days 3650 -out ${nexus_home}/etc/ssl/nexus.cert
 
 ls ${nexus_home}/etc/ssl/
-keystore.jks  nexus.cert  nexus.key
-</code></pre><h4 id="etc-nexus-default-properties"><a href="#etc-nexus-default-properties" class="headerlink" title="etc/nexus-default.properties"></a>etc/nexus-default.properties</h4><pre><code>## DO NOT EDIT - CUSTOMIZATIONS BELONG IN $data-dir/etc/nexus.properties
-##
-# Jetty section
-application-port=8081
-application-host=192.168.5.12
-application-port-ssl=8444
-nexus-args=${jetty.etc}/jetty.xml,${jetty.etc}/jetty-http.xml,${jetty.etc}/jetty-https.xml,${jetty.etc}/jetty-requestlog.xml
-nexus-context-path=/
-# Nexus section
-nexus-edition=nexus-pro-edition
-nexus-features=\
-nexus-pro-feature
-
-nexus.hazelcast.discovery.isEnabled=true
-</code></pre><h4 id="etc-nexus-properties"><a href="#etc-nexus-properties" class="headerlink" title="etc/nexus.properties"></a>etc/nexus.properties</h4><pre><code>application-port-ssl=18444
-</code></pre><h4 id="restart-nexus-service"><a href="#restart-nexus-service" class="headerlink" title="restart nexus service"></a>restart nexus service</h4><pre><code>${nexus_home}/bin/nexus restart
-</code></pre><h4 id="create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><a href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI" class="headerlink" title="create nexus repository and set Repository Connectors in nexus UI"></a>create nexus repository and set Repository Connectors in nexus UI</h4><pre><code>#hosted type repository for docker push
+keystore.jks  nexus.cert  nexus.key</code></pre><h4 id="etc-nexus-default-properties"><a href="#etc-nexus-default-properties" class="headerlink" title="etc/nexus-default.properties"></a>etc/nexus-default.properties</h4><pre><code>application-port-ssl=8444
+nexus-args=${jetty.etc}/jetty.xml,${jetty.etc}/jetty-http.xml,${jetty.etc}/jetty-https.xml,${jetty.etc}/jetty-requestlog.xml</code></pre><h4 id="etc-nexus-properties"><a href="#etc-nexus-properties" class="headerlink" title="etc/nexus.properties"></a>etc/nexus.properties</h4><pre><code>application-port-ssl=18444</code></pre><h4 id="restart-nexus-service"><a href="#restart-nexus-service" class="headerlink" title="restart nexus service"></a>restart nexus service</h4><pre><code>${nexus_home}/bin/nexus restart</code></pre><h4 id="create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><a href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI" class="headerlink" title="create nexus repository and set Repository Connectors in nexus UI"></a>create nexus repository and set Repository Connectors in nexus UI</h4><pre><code>#hosted type repository for docker push
 HTTPS: 18444
 
 #group type repository for docker pull
-HTTPS: 18445
-</code></pre><h4 id="setup-ssl-trust-in-docker-client-node-not-always-necessary"><a href="#setup-ssl-trust-in-docker-client-node-not-always-necessary" class="headerlink" title="setup ssl trust in docker client node(not always necessary)"></a>setup ssl trust in docker client node(not always necessary)</h4><pre><code>#remove old cert
+HTTPS: 18445</code></pre><h4 id="setup-ssl-trust-in-docker-client-node-not-always-necessary"><a href="#setup-ssl-trust-in-docker-client-node-not-always-necessary" class="headerlink" title="setup ssl trust in docker client node(not always necessary)"></a>setup ssl trust in docker client node(not always necessary)</h4><pre><code>#remove old cert
 cd /etc/pki/ca-trust/source/anchors
 rm –f your_domain_name.crt
-
 
 #client trust
 export DOMAIN_NAME=your_domain_name
 export TCP_PORT=18444
 openssl s_client -connect $DOMAIN_NAME:$TCP_PORT -showcerts &lt;/dev/null 2&gt;/dev/null | openssl x509 -outform PEM | tee /etc/pki/ca-trust/source/anchors/$DOMAIN_NAME.crt
 
-update-ca-trust
-</code></pre><h4 id="configure-etc-docker-daemon-json-and-restart-docker-service"><a href="#configure-etc-docker-daemon-json-and-restart-docker-service" class="headerlink" title="configure /etc/docker/daemon.json and restart docker service"></a>configure /etc/docker/daemon.json and restart docker service</h4><pre><code>{
+update-ca-trust</code></pre><h4 id="configure-etc-docker-daemon-json-and-restart-docker-service"><a href="#configure-etc-docker-daemon-json-and-restart-docker-service" class="headerlink" title="configure /etc/docker/daemon.json and restart docker service"></a>configure /etc/docker/daemon.json and restart docker service</h4><pre><code>{
     &quot;insecure-registries&quot; : [&quot;your_domain_name:18444&quot;,&quot;your_domain_name:18445&quot;]
-}
-</code></pre><h4 id="restart-docker-service-and-login"><a href="#restart-docker-service-and-login" class="headerlink" title="restart docker service and login"></a>restart docker service and login</h4><pre><code>/bin/systemctl restart docker.service
+}</code></pre><h4 id="restart-docker-service-and-login"><a href="#restart-docker-service-and-login" class="headerlink" title="restart docker service and login"></a>restart docker service and login</h4><pre><code>/bin/systemctl restart docker.service
 
 #test docker login
 docker login your_domain_name:18444
-docker login your_domain_name:18445
-</code></pre><h1 id="Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><a href="#Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm" class="headerlink" title="Create k8s ha cluster with ansible-galaxy scrips using kubeadm"></a>Create k8s ha cluster with ansible-galaxy scrips using kubeadm</h1><p>ansible inventory example</p>
+docker login your_domain_name:18445</code></pre><h1 id="Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><a href="#Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm" class="headerlink" title="Create k8s ha cluster with ansible-galaxy scrips using kubeadm"></a>Create k8s ha cluster with ansible-galaxy scrips using kubeadm</h1><p>ansible inventory example</p>
 <pre><code>stsz240074   ansible_host=192.168.6.192
 stsz240075   ansible_host=192.168.6.193
 stsz240076   ansible_host=192.168.6.194
@@ -374,8 +377,7 @@ stsz240076
 
 [k8sworker]
 stsz240077
-stsz240078
-</code></pre><p>install haproxy in center node, configure 3 node master as backend server</p>
+stsz240078</code></pre><p>install haproxy in center node, configure 3 node master as backend server</p>
 <pre><code>haproxy_conf: |
     listen k8smaster
       bind *:6443
@@ -385,25 +387,19 @@ stsz240078
       option tcp-check
       server master1 192.168.6.192:6443 check fall 3 rise 2
       server master2 192.168.6.193:6443 check fall 3 rise 2
-      server master3 192.168.6.194:6443 check fall 3 rise 2
-</code></pre><p>prepare k8s images, push to private registry and load images to nodes</p>
+      server master3 192.168.6.194:6443 check fall 3 rise 2</code></pre><p>prepare k8s images, push to private registry and load images to nodes</p>
 <p>install first k8schaos node with kubeadm</p>
-<pre><code>kubeadm init --config /tmp/kubeadm-config.yml --upload-certs --v=5
-</code></pre><p>install two extra k8smaster node and join to cluster<br>install k8sworker node</p>
+<pre><code>kubeadm init --config /tmp/kubeadm-config.yml --upload-certs --v=5</code></pre><p>install two extra k8smaster node and join to cluster<br>install k8sworker node</p>
 <h1 id="Helm-install-jenkins-service-in-k8s"><a href="#Helm-install-jenkins-service-in-k8s" class="headerlink" title="Helm install jenkins service in k8s"></a>Helm install jenkins service in k8s</h1><p>prepare images and helm charts<br>load docker images to nodes first<br>install helm and tiller</p>
 <pre><code>kubectl apply -f rbactiller.yml
-helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --stable-repo-url https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts --service-account=tiller
-</code></pre><p>install nfs-client-provisioner</p>
-<pre><code>helm install --name ndp --values values.yaml --namespace ndp ./nfs-client-provisioner
-</code></pre><p>exec helm install for jenkins</p>
-<pre><code>helm install --name jenkins --values values.yaml --namespace jenkins ./1.9.2/jenkins
-</code></pre><p>install jenkins plugins and adjust settings</p>
+helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --stable-repo-url https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts --service-account=tiller</code></pre><p>install nfs-client-provisioner</p>
+<pre><code>helm install --name ndp --values values.yaml --namespace ndp ./nfs-client-provisioner</code></pre><p>exec helm install for jenkins</p>
+<pre><code>helm install --name jenkins --values values.yaml --namespace jenkins ./1.9.2/jenkins</code></pre><p>install jenkins plugins and adjust settings</p>
 <p>update timezone and security settings:</p>
 <p>1, System.setProperty(‘org.apache.commons.jelly.tags.fmt.timeZone’, ‘Asia/Shanghai’)<br>2, Configure Global Security -&gt; Jenkins’ own user database -&gt; Project-based Matrix Authorization Strategy</p>
 <p>update slave settings:（Docker in Docker）<br>Host Path Volume:<br>   /usr/bin/docker<br>   /var/run/docker.sock</p>
 <p>update default PersistentVolume recycle policy with</p>
-<pre><code>kubectl patch pv $(kubectl get pv,pvc -n jenkins | grep -v NAME | grep jenkins/jenkins | awk &apos;{print $1}&apos; | cut -d&apos;/&apos; -f2) -p &apos;{&quot;spec&quot;:{&quot;persistentVolumeReclaimPolicy&quot;:&quot;Retain&quot;}}&apos;
-</code></pre><h1 id="Create-ci-cd-pipeline-in-k8s"><a href="#Create-ci-cd-pipeline-in-k8s" class="headerlink" title="Create ci cd pipeline in k8s"></a>Create ci cd pipeline in k8s</h1><pre><code>pipeline {
+<pre><code>kubectl patch pv $(kubectl get pv,pvc -n jenkins | grep -v NAME | grep jenkins/jenkins | awk &apos;{print $1}&apos; | cut -d&apos;/&apos; -f2) -p &apos;{&quot;spec&quot;:{&quot;persistentVolumeReclaimPolicy&quot;:&quot;Retain&quot;}}&apos;</code></pre><h1 id="Create-ci-cd-pipeline-in-k8s-non-docker"><a href="#Create-ci-cd-pipeline-in-k8s-non-docker" class="headerlink" title="Create ci cd pipeline in k8s (non-docker)"></a>Create ci cd pipeline in k8s (non-docker)</h1><pre><code>pipeline {
     agent { label &quot;jenkins-jenkins-slave&quot; } // jenkins slave with maven sonar-scanner tools
 
     parameters {
@@ -411,11 +407,7 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
         string(name: &apos;PKG_VERSION&apos;, defaultValue: &apos;1.0.0&apos;, description: &apos;固定值，不需要填写&apos;)
         string(name: &apos;BRANCH&apos;, defaultValue: &apos;master&apos;, description: &apos;固定值，不需要填写&apos;)
         string(name: &apos;SONAR_PROJECT_NAME&apos;, defaultValue: &apos;sonar_project_name&apos;, description: &apos;固定值，不需要填写&apos;)
-
-        // deploy param
-        string(name: &apos;ENVTYPE_DEV&apos;, defaultValue: &apos;msdev&apos;, description: &apos;固定值，不需要填写\n\n&apos;)
-        string(name: &apos;ENVTYPE_QA&apos;, defaultValue: &apos;msqa&apos;, description: &apos;固定值，不需要填写\n\n&apos;)
-
+        ...
         choice(name: &apos;ENABLE_SONAR&apos;, choices: [&apos;N&apos;, &apos;Y&apos;], description: &apos;是否开启SONAR扫描&apos;)
         choice(name: &apos;DEPLOY_QA&apos;, choices: [&apos;N&apos;, &apos;Y&apos;], description: &apos;是否发布QA环境\n\n&apos;)
     }
@@ -429,8 +421,8 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
         NEXUS_PROTOCOL = &quot;http&quot;
         NEXUS_URL = &quot;&quot;
         NEXUS_REPOSITORY = &quot;snapshot&quot;
-        NEXUS_GROUP = &quot;wise&quot;
-        NEXUS_ARTIFACT_ID = &quot;ms-assembly&quot;
+        NEXUS_GROUP = &quot;&quot;
+        NEXUS_ARTIFACT_ID = &quot;&quot;
         NEXUS_CREDENTIAL_ID = &quot;&quot;
 
         releasePackageDirPath = &quot;RELEASE/patch/jenkins/${PILOT_PROJECT}&quot;
@@ -439,6 +431,7 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
     options {
         buildDiscarder(logRotator(numToKeepStr: &apos;5&apos;))
         preserveStashes()
+        { skipDefaultCheckout() }
     }
 
     stages {
@@ -457,13 +450,7 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
                         }
                     } catch(error) {
                         echo &quot;First build failed, let&apos;s retry if accepted&quot;
-                        retry(2) {
-                            script {
-                                try {
-                                    sh &apos;mvn package -f project_name/pom.xml -Dmaven.test.skip=true&apos;
-                                } finally { }
-                            }
-                        }
+                        retry(2) { // same code as above }
                     }
                 }
             }
@@ -481,7 +468,6 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
             parallel {
                 stage(&apos;Archive Artifacts&apos;) {
                     steps {
-                        sh &quot;ls -lrt ${WORKSPACE}&quot;
                         archiveArtifacts &quot;project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip&quot;
 
                         sh &apos;&apos;&apos;
@@ -512,7 +498,7 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
                     steps {
                         script {
                             if (env.ENABLE_SONAR == &apos;Y&apos;) {
-                                withSonarQubeEnv(&apos;dev_sonarqube&apos;) { // configured in jenkins setting
+                                withSonarQubeEnv(&apos;dev_sonarqube&apos;) { // configured in jenkins global setting
                                     sh &apos;&apos;&apos;sonar-scanner -Dsonar.host.url=${SONAR_HOST} \
                                         -Dsonar.sourceEncoding=UTF-8 \
                                         -Dsonar.sources=. \
@@ -545,7 +531,6 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
             steps {
                 script {
                     // sh &quot;cap -T&quot;
-
                     sh &apos;&apos;&apos;#!/bin/bash -ex
 
                     cd  ${HOME}/${releasePackageDirPath}
@@ -556,20 +541,8 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
                     cd /data/relmgt
                     cap  ${ENVTYPE_DEV} patch:upload CHG=${HOME}/${releasePackageDirPath}/project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip PROJECT=${PILOT_PROJECT}
                     cap  ${ENVTYPE_DEV} patch:upload CHG=${HOME}/${releasePackageDirPath}/project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT.zip.md5sum PROJECT=${PILOT_PROJECT}
-                    cap ${ENVTYPE_DEV} patch:DIFFZIP CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT}
 
-                    cap ${ENVTYPE_DEV} cmd CMD=&apos;cd $PROJECT_ROOT/project_name; chmod 755 *.sh; sh stopServers.sh DEV &amp;&apos; -z10.25.172.164
-                    sleep 10
-
-                    #cap ${ENVTYPE_DEV}  patch:BACKUP TEAM=${TEAM}
-                    cap ${ENVTYPE_DEV}  patch:UNPACK CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT} ZIP=Y
-                    sleep 10
-                    #echo &quot;check the md5 value for deployed version&quot;
-                    #cap ${ENVTYPE_DEV} patch:CHECKSUM TEAM=${TEAM} PROJECT=${PILOT_PROJECT}
-                    #cap ${ENVTYPE_DEV} patch:DIFFMD5  TEAM=${TEAM} CHG=project_name-ms-assembly-${PKG_VERSION}-SNAPSHOT PROJECT=${PILOT_PROJECT}
-                    cap ${ENVTYPE_DEV} cmd CMD=&apos;cd $PROJECT_ROOT/project_name; chmod 755 *.sh; sh -l startServers.sh DEV &gt;/dev/null &amp;&apos; -z10.25.172.164
-                    cap ${ENVTYPE_DEV} cmd CMD=&apos;. ./env; chmod -R 755 $PROJECT_ROOT/&apos; -z10.25.172.164
-
+                    # other deploy logic here
                     &apos;&apos;&apos;
                 }
             }
@@ -581,14 +554,30 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
                 environment name: &apos;DEPLOY_QA&apos;, value: &apos;Y&apos;
             }
             steps {
-                script {
-                    // refer dev deploy script
+                script { // refer dev deploy script }
+            }
+        }
+    }
+}</code></pre><h1 id="Create-ci-cd-pipeline-in-k8s-build-docker-image-and-push-to-private-registry"><a href="#Create-ci-cd-pipeline-in-k8s-build-docker-image-and-push-to-private-registry" class="headerlink" title="Create ci cd pipeline in k8s (build docker image and push to private registry)"></a>Create ci cd pipeline in k8s (build docker image and push to private registry)</h1><pre><code>stage(&quot;Build Docker Image&quot;) {
+    steps {
+        script {
+            def app
+
+            stage(&apos;Build image&apos;) {
+                withDockerRegistry(credentialsId: &quot;${IMAGE_NEXUS_CREDENTIAL_ID}&quot;, url: &quot;http://${REPO}/v1&quot;) {
+                    app = docker.build(&quot;${REPO_PUSH}/project_name/app_name-service:${env.DOMAIN}&quot;, &quot;--label project_name/app_name-service --no-cache --pull --force-rm --build-arg REPO=${REPO} --build-arg DOMAIN=${DOMAIN} --build-arg GROUP_ID=${DOMAIN} --build-arg LAUNCHER_VERSION=${LAUNCHER_VERSION} --build-arg PKG_VERSION=${IMAGE_VERSION} --build-arg NEXUS_REPO=${NEXUS_REPO} .&quot;)
+                }
+            }
+
+            stage(&apos;Push image&apos;) {
+                withDockerRegistry(credentialsId: &quot;${IMAGE_NEXUS_CREDENTIAL_ID}&quot;, url: &quot;http://${REPO_PUSH}/v1&quot;) {
+                    app.push(&quot;${env.IMAGE_VERSION}-${env.BUILD_NUMBER}&quot;)
+                    app.push(&quot;${env.IMAGE_VERSION}-latest&quot;)
                 }
             }
         }
     }
-}
-</code></pre>
+}</code></pre>
       
     </div>
     
@@ -596,13 +585,13 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
   
     
     <div class="copyright">
-        <p><span>本文标题:</span><a href="/2020/02/29/k8s-cicd-pipeline-setup/">k8s ci &amp; cd pipeline</a></p>
+        <p><span>本文标题:</span><a href="/2020/03/21/k8s-cicd-pipeline-setup/">k8s ci &amp; cd pipeline</a></p>
         <p><span>文章作者:</span><a href="/" title="回到主页">J.W</a></p>
-        <p><span>发布时间:</span>2020-02-29, 19:33:51</p>
-        <p><span>最后更新:</span>2020-02-29, 20:21:00</p>
+        <p><span>发布时间:</span>2020-03-21, 14:36:23</p>
+        <p><span>最后更新:</span>2020-03-21, 15:11:03</p>
         <p>
-            <span>原始链接:</span><a class="post-url" href="/2020/02/29/k8s-cicd-pipeline-setup/" title="k8s ci &amp; cd pipeline">https://ajasonwang.github.io/2020/02/29/k8s-cicd-pipeline-setup/</a>
-            <span class="copy-path" data-clipboard-text="原文: https://ajasonwang.github.io/2020/02/29/k8s-cicd-pipeline-setup/　　作者: J.W" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
+            <span>原始链接:</span><a class="post-url" href="/2020/03/21/k8s-cicd-pipeline-setup/" title="k8s ci &amp; cd pipeline">https://ajasonwang.github.io/2020/03/21/k8s-cicd-pipeline-setup/</a>
+            <span class="copy-path" data-clipboard-text="原文: https://ajasonwang.github.io/2020/03/21/k8s-cicd-pipeline-setup/　　作者: J.W" title="点击复制文章链接"><i class="fa fa-clipboard"></i></span>
             <script> var clipboard = new Clipboard('.copy-path'); </script>
         </p>
         <p>
@@ -628,7 +617,7 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
 
     <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Overview"><span class="toc-number">1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Setup-nexus-private-registry"><span class="toc-number">2.</span> <span class="toc-text">Setup nexus private registry</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#generate-ssl-certificate-and-restart-nexus"><span class="toc-number">2.0.0.1.</span> <span class="toc-text">generate ssl certificate and restart nexus</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#etc-nexus-default-properties"><span class="toc-number">2.0.0.2.</span> <span class="toc-text">etc/nexus-default.properties</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#etc-nexus-properties"><span class="toc-number">2.0.0.3.</span> <span class="toc-text">etc/nexus.properties</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#restart-nexus-service"><span class="toc-number">2.0.0.4.</span> <span class="toc-text">restart nexus service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><span class="toc-number">2.0.0.5.</span> <span class="toc-text">create nexus repository and set Repository Connectors in nexus UI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setup-ssl-trust-in-docker-client-node-not-always-necessary"><span class="toc-number">2.0.0.6.</span> <span class="toc-text">setup ssl trust in docker client node(not always necessary)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#configure-etc-docker-daemon-json-and-restart-docker-service"><span class="toc-number">2.0.0.7.</span> <span class="toc-text">configure /etc/docker/daemon.json and restart docker service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#restart-docker-service-and-login"><span class="toc-number">2.0.0.8.</span> <span class="toc-text">restart docker service and login</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><span class="toc-number">3.</span> <span class="toc-text">Create k8s ha cluster with ansible-galaxy scrips using kubeadm</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Helm-install-jenkins-service-in-k8s"><span class="toc-number">4.</span> <span class="toc-text">Helm install jenkins service in k8s</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Create-ci-cd-pipeline-in-k8s"><span class="toc-number">5.</span> <span class="toc-text">Create ci cd pipeline in k8s</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Overview"><span class="toc-number">1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Setup-nexus-private-registry"><span class="toc-number">2.</span> <span class="toc-text">Setup nexus private registry</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#generate-ssl-certificate-and-restart-nexus"><span class="toc-number">2.0.0.1.</span> <span class="toc-text">generate ssl certificate and restart nexus</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#etc-nexus-default-properties"><span class="toc-number">2.0.0.2.</span> <span class="toc-text">etc/nexus-default.properties</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#etc-nexus-properties"><span class="toc-number">2.0.0.3.</span> <span class="toc-text">etc/nexus.properties</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#restart-nexus-service"><span class="toc-number">2.0.0.4.</span> <span class="toc-text">restart nexus service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#create-nexus-repository-and-set-Repository-Connectors-in-nexus-UI"><span class="toc-number">2.0.0.5.</span> <span class="toc-text">create nexus repository and set Repository Connectors in nexus UI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setup-ssl-trust-in-docker-client-node-not-always-necessary"><span class="toc-number">2.0.0.6.</span> <span class="toc-text">setup ssl trust in docker client node(not always necessary)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#configure-etc-docker-daemon-json-and-restart-docker-service"><span class="toc-number">2.0.0.7.</span> <span class="toc-text">configure /etc/docker/daemon.json and restart docker service</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#restart-docker-service-and-login"><span class="toc-number">2.0.0.8.</span> <span class="toc-text">restart docker service and login</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Create-k8s-ha-cluster-with-ansible-galaxy-scrips-using-kubeadm"><span class="toc-number">3.</span> <span class="toc-text">Create k8s ha cluster with ansible-galaxy scrips using kubeadm</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Helm-install-jenkins-service-in-k8s"><span class="toc-number">4.</span> <span class="toc-text">Helm install jenkins service in k8s</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Create-ci-cd-pipeline-in-k8s-non-docker"><span class="toc-number">5.</span> <span class="toc-text">Create ci cd pipeline in k8s (non-docker)</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Create-ci-cd-pipeline-in-k8s-build-docker-image-and-push-to-private-registry"><span class="toc-number">6.</span> <span class="toc-text">Create ci cd pipeline in k8s (build docker image and push to private registry)</span></a></li></ol>
 </div>
 <style>
     .left-col .switch-btn,
@@ -675,7 +664,7 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
     
       <div class="duoshuo" id="comments">
     <div id="comment-box" ></div>
-    <div class="ds-thread" id="ds-thread" data-thread-key="2020/02/29/k8s-cicd-pipeline-setup/" data-title="k8s ci &amp; cd pipeline" data-url="https://ajasonwang.github.io/2020/02/29/k8s-cicd-pipeline-setup/"></div>
+    <div class="ds-thread" id="ds-thread" data-thread-key="2020/03/21/k8s-cicd-pipeline-setup/" data-title="k8s ci &amp; cd pipeline" data-url="https://ajasonwang.github.io/2020/03/21/k8s-cicd-pipeline-setup/"></div>
     <script>
         var duoshuoQuery = {short_name:"mogging"};
         var loadComment = function(){
@@ -710,7 +699,7 @@ helm init --tiller-image registry.hub.docker.com/jessestuart/tiller:v2.14.2 --st
         
     </div>
 
-    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/02/29/k8s-cicd-pipeline-setup/">k8s ci & cd pipeline</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/">Jenkins安装配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/">阿里云服务器被发现挖矿程序后的处理</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/26/nfs-permission/">nfs权限问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/30/delete-long-path-in-windows/">Windows中删除路径太长目录及文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/07/01/secure-ssh-trust-connection/">增加ssh无密码信任连接的安全性</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/06/03/windows-malformation-folder/">Windows 畸形文件夹</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/05/19/exclude-file-when-using-rm/">在 Bash 中删除除某些文件外的所有文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/04/29/linux-ulimit-nproc-set/">正确配置Linux系统ulimit/nproc值的方法（转）</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/23/pip-install-unable-to-find-vcvarsallbat/">pip install 的报错 Unable to find vcvarsall.bat</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/13/ubuntu-hang-on-boot/">双系统进Ubuntu开机卡死</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/10/13/drop-meaningless-social-activities/">放弃那些无用的社交</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/21/to-be-a-smart-information-consumer/">做个聪明的信息消费者</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/19/all-about-password/">《密码疲劳》读后感</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/07/linux-set--e/">linux中的set命令: set -e 与 set -o pipefail </a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/04/shrink-virtualbox-disk-file/">virtualbox压缩vdi硬盘</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/26/github-gitcafe-sshkey/">Github gitee 在同一台机器设置SSH密钥</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/22/security-tools/">安全上网工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/01/curl-http_code/">curl http_code 状态码及意义</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/24/love-page/">love page</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/16/linux-find-xargs-print0/">linux find xargs print0</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/29/git-reset/">git 放弃本地修改</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/zhixiangshu/">致橡树</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/April-twilight/">四月的黄昏</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/10/god-father-s-outlook-on-life/">《教父》里的人生观</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/gitcafe-qianyi/">GitCafe 迁移</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/access-log-for-this-blog/">今天的网站访问记录</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/08/googleadsense/">今天尝试了Google Adsense</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/07/what-is-the-difference-of-two-skype-in-google-play/">Google Play 中有两个 Skype</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/06/systematization-lead-to-result/">制度决定结果</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/05/a-splendid-bug-finding-story/">我听到过的最精彩的一个软件纠错故事</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/03/what-is-hr-thinking-about-job-hunters-over-30/">HR 怎么看待三十岁以上的基础岗位求职者</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/01/some-words-written-at-the-begining-of-december-2014/">写在2014年最后一个月的月初</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/28/do-not-say-everything-I-did-is-for-you/">别再讲“我是为你好”的混账话</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/18/memorial-day/">今天是个值得纪念的日子</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/freebsd-100/">freebsd 10.0 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/linux-ubuntu-1404/">linux ubuntu 14.04 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/07/windows-import-cer-file-command/">windows 安装证书命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-webdeploy/">iis webdeploy</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-7-appcmd/">iis 7 appcmd</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-vim-save-file-none-root/">linux vim 非root用户不能保存文件的技巧</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-ulimit/">mysql ulimit 案例（转载）</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-backup-with-mysqldump/">mysql backup with mysqldump</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-ssh-login-slow/">linux ssh 登陆慢</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/powershell-clean-disk-space/">powershell 清理磁盘空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/linux-rm-rf-recovery/">rm rf 误删恢复</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/virtualbox-os-x-mavericks-screen-resolution/">VirtualBox OS X Mavericks 虚拟机分辨率调整</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/08/13/hello-my-2014-august/">Hello World, 于2014年八月!</a></li></ul>
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/03/21/k8s-cicd-pipeline-setup/">k8s ci & cd pipeline</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/setup-jenkins-with-delegate-to-servlet-container/">Jenkins安装配置</a></li><li class="post-list-item"><a class="post-list-link" href="/2017/10/14/aliyun-server-was-hajacked-for-mining-fix/">阿里云服务器被发现挖矿程序后的处理</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/10/26/nfs-permission/">nfs权限问题</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/09/30/delete-long-path-in-windows/">Windows中删除路径太长目录及文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/07/01/secure-ssh-trust-connection/">增加ssh无密码信任连接的安全性</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/06/03/windows-malformation-folder/">Windows 畸形文件夹</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/05/19/exclude-file-when-using-rm/">在 Bash 中删除除某些文件外的所有文件</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/04/29/linux-ulimit-nproc-set/">正确配置Linux系统ulimit/nproc值的方法（转）</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/03/23/pip-install-unable-to-find-vcvarsallbat/">pip install 的报错 Unable to find vcvarsall.bat</a></li><li class="post-list-item"><a class="post-list-link" href="/2016/01/13/ubuntu-hang-on-boot/">双系统进Ubuntu开机卡死</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/10/13/drop-meaningless-social-activities/">放弃那些无用的社交</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/21/to-be-a-smart-information-consumer/">做个聪明的信息消费者</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/19/all-about-password/">《密码疲劳》读后感</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/07/linux-set--e/">linux中的set命令: set -e 与 set -o pipefail </a></li><li class="post-list-item"><a class="post-list-link" href="/2015/08/04/shrink-virtualbox-disk-file/">virtualbox压缩vdi硬盘</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/26/github-gitcafe-sshkey/">Github gitee 在同一台机器设置SSH密钥</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/22/security-tools/">安全上网工具</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/04/01/curl-http_code/">curl http_code 状态码及意义</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/24/love-page/">love page</a></li><li class="post-list-item"><a class="post-list-link" href="/2015/02/16/linux-find-xargs-print0/">linux find xargs print0</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/29/git-reset/">git 放弃本地修改</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/zhixiangshu/">致橡树</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/27/April-twilight/">四月的黄昏</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/10/god-father-s-outlook-on-life/">《教父》里的人生观</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/gitcafe-qianyi/">GitCafe 迁移</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/09/access-log-for-this-blog/">今天的网站访问记录</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/08/googleadsense/">今天尝试了Google Adsense</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/07/what-is-the-difference-of-two-skype-in-google-play/">Google Play 中有两个 Skype</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/06/systematization-lead-to-result/">制度决定结果</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/05/a-splendid-bug-finding-story/">我听到过的最精彩的一个软件纠错故事</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/03/what-is-hr-thinking-about-job-hunters-over-30/">HR 怎么看待三十岁以上的基础岗位求职者</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/12/01/some-words-written-at-the-begining-of-december-2014/">写在2014年最后一个月的月初</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/28/do-not-say-everything-I-did-is-for-you/">别再讲“我是为你好”的混账话</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/18/memorial-day/">今天是个值得纪念的日子</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/freebsd-100/">freebsd 10.0 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/14/linux-ubuntu-1404/">linux ubuntu 14.04 初体验</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/07/windows-import-cer-file-command/">windows 安装证书命令</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-webdeploy/">iis webdeploy</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/05/iis-7-appcmd/">iis 7 appcmd</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-vim-save-file-none-root/">linux vim 非root用户不能保存文件的技巧</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-ulimit/">mysql ulimit 案例（转载）</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/mysql-backup-with-mysqldump/">mysql backup with mysqldump</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/linux-ssh-login-slow/">linux ssh 登陆慢</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/04/powershell-clean-disk-space/">powershell 清理磁盘空间</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/linux-rm-rf-recovery/">rm rf 误删恢复</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/11/03/virtualbox-os-x-mavericks-screen-resolution/">VirtualBox OS X Mavericks 虚拟机分辨率调整</a></li><li class="post-list-item"><a class="post-list-link" href="/2014/08/13/hello-my-2014-august/">Hello World, 于2014年八月!</a></li></ul>
 
 
 
